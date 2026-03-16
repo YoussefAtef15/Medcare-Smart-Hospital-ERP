@@ -1,0 +1,187 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+:root {
+    --bg-color: #F4F7F6;
+    --sidebar-bg: #114B43; /* Dark green from image */
+    --primary-green: #158765;
+    --text-dark: #2C3E50;
+    --text-light: #A0B2AF;
+}
+
+body {
+    font-family: 'Nunito', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-dark);
+    overflow-x: hidden;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100vh;
+    background-color: var(--sidebar-bg);
+    color: white;
+    padding: 20px 0;
+    border-top-right-radius: 30px;
+    border-bottom-right-radius: 30px;
+    z-index: 1000;
+}
+
+.sidebar-brand {
+    font-size: 24px;
+    font-weight: 800;
+    padding: 0 30px 30px;
+    color: white;
+}
+
+.menu-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-light);
+    padding: 10px 30px;
+    letter-spacing: 1px;
+}
+
+.sidebar a {
+    display: block;
+    padding: 12px 30px;
+    color: var(--text-light);
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.sidebar a i {
+    margin-right: 15px;
+    font-size: 18px;
+}
+
+.sidebar a:hover, .sidebar a.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-left: 4px solid var(--primary-green);
+}
+
+/* Main Content */
+.main-content {
+    margin-left: 260px;
+    padding: 30px;
+}
+
+/* Top Navbar */
+.top-navbar {
+    background: white;
+    border-radius: 20px;
+    padding: 10px 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+
+.search-bar {
+    background: #F4F7F6;
+    border-radius: 20px;
+    padding: 5px 15px;
+    align-items: center;
+    width: 300px;
+}
+
+.btn-add-patient {
+    background-color: var(--primary-green);
+    color: white;
+    border-radius: 10px;
+    font-weight: 600;
+    padding: 8px 20px;
+}
+
+.btn-add-patient:hover {
+    background-color: #0f664b;
+    color: white;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.notification-icon {
+    font-size: 20px;
+    color: var(--text-dark);
+    cursor: pointer;
+}
+
+.date-badge {
+    background: white;
+    padding: 8px 15px;
+    border-radius: 10px;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+}
+
+/* Stats Cards */
+.stat-card {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.card-dark-green {
+    background-color: var(--primary-green) !important;
+    color: white;
+}
+
+.card-dark-green .text-muted {
+    color: rgba(255,255,255,0.8) !important;
+}
+
+.stat-icon {
+    font-size: 24px;
+    background: #F4F7F6;
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.card-dark-green .stat-icon {
+    background: rgba(255,255,255,0.2);
+    color: white;
+}
+
+/* Schedule List */
+.schedule-item {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.time-col {
+    width: 60px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+/* Custom Tables for CRUD Pages */
+.table-custom { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+.table-custom thead th { background: #F4F7F6; color: var(--text-light); font-weight: 700; border-bottom: none; padding: 15px 20px; }
+.table-custom tbody td { padding: 15px 20px; vertical-align: middle; border-bottom: 1px solid #f0f0f0; font-weight: 600;}
+.action-btn { background: #F4F7F6; color: var(--text-dark); border: none; padding: 5px 10px; border-radius: 8px; margin-right: 5px; transition: 0.2s;}
+.action-btn:hover { background: var(--primary-green); color: white; }
+.action-btn.delete:hover { background: #dc3545; color: white; }
+
+/* --- Search Suggestions Styles --- */
+.search-item {
+    transition: background-color 0.2s ease;
+}
+.search-item:hover {
+    background-color: #F4F7F6;
+}

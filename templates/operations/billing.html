@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold">Billing & Invoices</h3>
+            <p class="text-muted mb-0">Manage patient bills and track payment status.</p>
+        </div>
+        {% if session.get('role') in ['admin', 'doctor'] %}
+        <button type="button" class="btn btn-add-patient" data-bs-toggle="modal" data-bs-target="#addBillModal">
+            <i class="bi bi-receipt"></i> Generate Bill
+        </button>
+        {% endif %}
+    </div>
+
+    <div class="table-responsive table-custom">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Bill ID</th>
+                    <th>Patient Name</th>
+                    <th>Date Generated</th>
+                    <th>Total Amount</th>
+                    <th>Paid Amount</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bill in bills %}
+                <tr>
+                    <td class="fw-bold text-muted">#{{ bill.BillID }}</td>
+                    <td><span class="fw-bold">{{ bill.FirstName }} {{ bill.LastName }}</span></td>
+                    <td>{{ bill.BillDate }}</td>
+                    <td class="fw-bold text-dark">{{ bill.TotalAmount }} EGP</td>
+                    <td class="fw-bold text-success">{{ bill.PaidAmount }} EGP</td>
+                    <td>
+                        {% if bill.PaymentStatus == 'Paid' %}
+                            <span class="badge bg-success rounded-pill px-3"><i class="bi bi-check-circle me-1"></i> Paid ({{ bill.PaymentMethod }})</span>
+                        {% elif bill.PaymentStatus == 'Partial' %}
+                            <span class="badge bg-warning text-dark rounded-pill px-3"><i class="bi bi-hourglass-split me-1"></i> Partial ({{ bill.PaymentMethod }})</span>
+                        {% else %}
+                            <span class="badge bg-danger rounded-pill px-3">Unpaid</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if bill.PaymentStatus != 'Paid' %}
+                        <button type="button" class="btn btn-sm btn-outline-success fw-bold rounded-pill" data-bs-toggle="modal" data-bs-target="#payBillModal{{ bill.BillID }}">
+                            {% if session.get('role') == 'patient' %} Pay Now {% else %} Process Payment {% endif %}
+                        </button>
+                        {% else %}
+                        <button class="btn btn-sm btn-light text-muted fw-bold rounded-pill" disabled>Settled</button>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                {% set remaining = bill.TotalAmount - bill.PaidAmount %}
+                <div class="modal fade" id="payBillModal{{ bill.BillID }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content rounded-4 border-0 shadow">
+                      <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold">Process Payment for Bill #{{ bill.BillID }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body p-4">
+                        <form action="/pay_bill/{{ bill.BillID }}" method="POST">
+                          <div class="row mb-3">
+                              <div class="col-md-6">
+                                  <label class="form-label text-muted fw-bold small">Total Bill</label>
+                                  <input type="text" class="form-control bg-light" value="{{ bill.TotalAmount }} EGP" readonly>
+                              </div>
+                              <div class="col-md-6">
+                                  <label class="form-label text-muted fw-bold small">Already Paid</label>
+                                  <input type="text" class="form-control bg-light" value="{{ bill.PaidAmount }} EGP" readonly>
+                              </div>
+                          </div>
+                          <div class="mb-3">
+                              <label class="form-label text-danger fw-bold">Remaining Balance (EGP)</label>
+                              <input type="text" class="form-control fw-bold text-danger" value="{{ remaining }}" readonly>
+                          </div>
+                          <hr>
+                          <div class="mb-3">
+                              <label class="form-label text-primary fw-bold">Amount to Pay Now (EGP)</label>
+                              <input type="number" step="0.01" max="{{ remaining }}" min="1" class="form-control border-primary" name="payment_amount" placeholder="Enter amount..." required>
+                          </div>
+                          <div class="mb-4">
+                              <label class="form-label text-muted fw-bold">Payment Method</label>
+                              <select class="form-select" name="payment_method" required>
+                                  {% if session.get('role') != 'patient' %}
+                                  <option value="Cash">Cash</option>
+                                  {% endif %}
+                                  <option value="Credit Card">Credit Card</option>
+                                  <option value="Insurance">Insurance</option>
+                                  {% if session.get('role') == 'patient' %}
+                                  <option value="Fawry">Fawry / E-Wallet</option>
+                                  {% endif %}
+                              </select>
+                          </div>
+                          <div class="d-grid">
+                              <button type="submit" class="btn btn-success py-2 fw-bold">Confirm Payment</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% else %}
+                <tr><td colspan="7" class="text-center py-4 text-muted">No billing records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if session.get('role') in ['admin', 'doctor'] %}
+<div class="modal fade" id="addBillModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold">Generate New Bill</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form action="/add_bill" method="POST">
+          <div class="mb-3">
+              <label class="form-label text-muted fw-bold">Select Patient</label>
+              <select class="form-select" name="patient_id" required>
+                  <option value="" disabled selected>-- Choose Patient --</option>
+                  {% for p in patients %}
+                  <option value="{{ p.PatientID }}">{{ p.FirstName }} {{ p.LastName }}</option>
+                  {% endfor %}
+              </select>
+          </div>
+
+          <div class="p-3 bg-light rounded-3 mb-3 border">
+              <h6 class="fw-bold mb-3 text-primary">Billing Details</h6>
+              <div class="mb-2">
+                  <label class="form-label text-muted fw-bold small">Consultation Fee (EGP)</label>
+                  <input type="number" step="0.01" class="form-control calc-bill" id="consultation_fee" value="0" required>
+              </div>
+              <div class="mb-2">
+                  <label class="form-label text-muted fw-bold small">Lab Tests Cost (EGP)</label>
+                  <input type="number" step="0.01" class="form-control calc-bill" id="lab_tests" value="0" required>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label text-muted fw-bold small">Medicine Cost (EGP)</label>
+                  <input type="number" step="0.01" class="form-control calc-bill" id="medicine_cost" value="0" required>
+              </div>
+          </div>
+
+          <div class="mb-4">
+              <label class="form-label fw-bold text-dark fs-5">Total Amount (EGP)</label>
+              <input type="number" step="0.01" class="form-control form-control-lg fw-bold bg-white text-primary" id="total_amount" name="total_amount" value="0" readonly>
+          </div>
+          <div class="d-grid">
+              <button type="submit" class="btn btn-add-patient py-2 fw-bold">Create Invoice</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    document.querySelectorAll('.calc-bill').forEach(input => {
+        input.addEventListener('input', function() {
+            let consult = parseFloat(document.getElementById('consultation_fee').value) || 0;
+            let lab = parseFloat(document.getElementById('lab_tests').value) || 0;
+            let med = parseFloat(document.getElementById('medicine_cost').value) || 0;
+            document.getElementById('total_amount').value = (consult + lab + med).toFixed(2);
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

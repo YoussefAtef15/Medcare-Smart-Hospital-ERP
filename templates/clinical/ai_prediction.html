@@ -1,0 +1,498 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold">Medcare AI Center</h3>
+            <p class="text-muted mb-0">Powered by Groq. Comprehensive Disease Prediction & Hospital Analytics.</p>
+        </div>
+        <div class="date-badge text-primary border border-primary">
+            <i class="bi bi-cpu-fill"></i> Advanced AI Suite
+        </div>
+    </div>
+
+    <ul class="nav nav-pills mb-4 bg-white p-2 rounded-pill shadow-sm d-inline-flex" id="aiTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-bold rounded-pill px-4" id="disease-tab" data-bs-toggle="pill" data-bs-target="#disease" type="button" role="tab">
+            <i class="bi bi-heart-pulse me-2"></i> Disease Prediction
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold rounded-pill px-4" id="analytics-tab" data-bs-toggle="pill" data-bs-target="#analytics" type="button" role="tab" onclick="loadHospitalAnalytics()">
+            <i class="bi bi-pie-chart-fill me-2"></i> Hospital Analytics
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold rounded-pill px-4" id="schedule-tab" data-bs-toggle="pill" data-bs-target="#schedule" type="button" role="tab" onclick="loadSchedulePrediction()">
+            <i class="bi bi-calendar-check me-2"></i> Smart Scheduling
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="aiTabsContent">
+
+        <div class="tab-pane fade show active" id="disease" role="tabpanel">
+            <div class="alert alert-info border-0 rounded-4 mb-4 shadow-sm" style="background-color: rgba(13, 138, 188, 0.1);">
+                <div class="d-flex">
+                    <div class="me-3 fs-4 text-primary"><i class="bi bi-lightbulb"></i></div>
+                    <div>
+                        <h6 class="fw-bold text-primary mb-1">How to interact with Medcare AI?</h6>
+                        <p class="small mb-0 text-muted">
+                            You can type symptoms directly, for example: <strong>"The patient has been suffering from a severe headache and blurred vision for two days."</strong><br>
+                            Or you can simply <strong>upload a prescription, medical report (PDF), or a Medical Scan (X-Ray/MRI in JPG/PNG)</strong>, and our Vision AI will analyze it!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-7">
+                    <div class="card shadow-sm border-0 rounded-4 mb-4">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-4"><i class="bi bi-clipboard2-pulse text-success me-2"></i> Patient Information</h5>
+
+                            <form id="analyzeForm" enctype="multipart/form-data">
+                                <div class="mb-4">
+                                    <label class="form-label text-muted fw-bold">Select Pending Appointment</label>
+                                    <select class="form-select form-select-lg" id="appointmentSelect" name="appointment_id">
+                                        <option value="" selected disabled>-- Select Appointment to link prediction --</option>
+                                        {% for appt in appointments %}
+                                            <option value="{{ appt.AppointmentID }}">Appt #{{ appt.AppointmentID }} - {{ appt.FirstName }} {{ appt.LastName }} ({{ appt.AppointmentDate }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted fw-bold">Patient Age</label>
+                                        <input type="number" class="form-control" name="age" placeholder="e.g., 45" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted fw-bold">Gender</label>
+                                        <select class="form-select" name="gender" required>
+                                            <option value="" selected disabled>-- Select Gender --</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label text-muted fw-bold">Describe Symptoms or Ask Questions</label>
+                                    <textarea class="form-control" id="symptomsInput" name="symptoms" rows="5" placeholder="Enter patient symptoms or medical history here..."></textarea>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label text-muted fw-bold">Upload Scan, Prescription or Medical Record (Optional)</label>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="fileInput" name="file" accept=".pdf,.png,.jpg,.jpeg">
+                                        <label class="input-group-text" for="fileInput"><i class="bi bi-upload"></i></label>
+                                    </div>
+                                    <small class="text-muted mt-1 d-block">Supported formats: PDF (Text Records), JPG/PNG (X-Rays & Medical Scans)</small>
+                                </div>
+
+                                <button type="button" class="btn btn-add-patient btn-lg w-100 py-3" id="analyzeBtn" onclick="runAIAnalysis()">
+                                    <i class="bi bi-cpu-fill me-2"></i> Run AI Analysis
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-5">
+                    <div class="card shadow-sm border-0 rounded-4 bg-white h-100" style="min-height: 400px; border-top: 5px solid var(--primary-green) !important;">
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h5 class="fw-bold mb-4" style="color: var(--sidebar-bg);"><i class="bi bi-clipboard-check me-2 text-success"></i> AI Analysis Result</h5>
+
+                            <div id="emptyState" class="text-center my-auto">
+                                <i class="bi bi-activity display-1 text-muted opacity-25"></i>
+                                <p class="mt-3 text-muted">Input symptoms or upload a file and click analyze to see results.</p>
+                            </div>
+
+                            <div id="loadingState" class="text-center my-auto" style="display: none;">
+                                <div class="spinner-border text-success" role="status"></div>
+                                <p class="mt-3 text-muted fw-bold">AI is analyzing medical data...</p>
+                            </div>
+
+                            <div id="resultContent" style="display: none;">
+                                <div class="badge bg-danger mb-3 px-3 py-2 rounded-pill shadow-sm" id="severityBadge">High Risk</div>
+
+                                <div class="p-4 bg-light rounded-4 mb-4 border border-light shadow-sm" style="font-family: 'Nunito', sans-serif; font-size: 1.15rem; line-height: 1.8; color: var(--text-dark);">
+                                    <span id="aiText"></span>
+                                </div>
+
+                                <div id="feedbackSection" class="border-top pt-4 mb-3">
+                                    <p class="small text-muted fw-bold mb-3">Is this prediction accurate?</p>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-outline-success btn-sm flex-fill rounded-pill fw-bold" onclick="sendFeedback(true)">
+                                            <i class="bi bi-hand-thumbs-up me-1"></i> Accurate
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm flex-fill rounded-pill fw-bold" onclick="sendFeedback(false)">
+                                            <i class="bi bi-hand-thumbs-down me-1"></i> Not Accurate
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div id="startChatContainer" class="text-center mt-auto pt-3 border-top" style="display: none;">
+                                    <p class="small text-muted fw-bold mb-2">Want more details? Ask Medcare AI!</p>
+                                    <button class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm" onclick="startAIChat()">
+                                        <i class="bi bi-chat-left-dots me-2"></i> Discuss with Medcare AI
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> <div id="chatSection" class="row mt-4 mb-5" style="display: none;">
+                <div class="col-12">
+                    <div class="card shadow-sm border-0 rounded-4 bg-white overflow-hidden">
+
+                        <div class="bg-light p-3 border-bottom d-flex align-items-center">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 50px; height: 50px; font-size: 1.3rem;">
+                                <i class="bi bi-robot"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-0">Medcare AI Assistant</h5>
+                                <small class="text-success fw-bold"><i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>Online & Ready to help</small>
+                            </div>
+                        </div>
+
+                        <div id="chatMessages" class="p-4 overflow-auto" style="height: 500px; background-color: #f8f9fa; scroll-behavior: smooth;">
+                        </div>
+
+                        <div class="p-3 bg-white border-top">
+                            <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden border">
+                                <input type="text" id="chatMessageInput" class="form-control border-0 bg-white ps-4" placeholder="Ask anything about this diagnosis..." style="font-size: 1.05rem;" onkeypress="handleChatKeyPress(event)" dir="auto">
+                                <button class="btn btn-primary px-5 fw-bold" type="button" onclick="sendChatMessage()">
+                                    <i class="bi bi-send-fill me-2"></i> Send
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="analytics" role="tabpanel">
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-body p-5" id="analyticsContent">
+                    <div class="text-center mt-5 mb-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-3 text-muted fw-bold">Fetching latest hospital insights...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="schedule" role="tabpanel">
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-calendar-day display-4 text-primary mb-3 d-block"></i>
+                        <h4 class="fw-bold">AI Appointment Prediction</h4>
+                        <p class="text-muted">Let AI analyze current patient loads and waiting times to predict the best slots for new bookings.</p>
+                    </div>
+
+                    <div id="scheduleContent" class="d-flex justify-content-center">
+                        </div>
+                </div>
+            </div>
+        </div>
+
+    </div> </div>
+
+<script>
+    let currentApptId = null;
+    let conversationHistory = []; // Array to maintain chat context
+
+    // --- NEW: Load Hospital Analytics Data ---
+    function loadHospitalAnalytics() {
+        document.getElementById('analyticsContent').innerHTML = '<div class="text-center mt-5 mb-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-3 text-muted fw-bold">Generating Insights...</p></div>';
+        fetch('/api/analytics')
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                let html = '<div class="row">';
+
+                // Top Diseases Widget
+                html += '<div class="col-md-6 mb-4">';
+                html += '<h5 class="fw-bold text-danger mb-4"><i class="bi bi-activity me-2"></i> Most Common Diagnoses</h5>';
+                html += '<ul class="list-group list-group-flush shadow-sm rounded-4">';
+                data.diseases.forEach(d => {
+                    html += `<li class="list-group-item d-flex justify-content-between align-items-center p-3 border-light">
+                                <span class="fw-bold text-dark">${d.name}</span>
+                                <span class="badge bg-danger rounded-pill px-3">${d.count} Cases</span>
+                             </li>`;
+                });
+                html += '</ul></div>';
+
+                // Busy Doctors Widget
+                html += '<div class="col-md-6 mb-4">';
+                html += '<h5 class="fw-bold text-primary mb-4"><i class="bi bi-person-badge me-2"></i> Busiest Doctors</h5>';
+                html += '<ul class="list-group list-group-flush shadow-sm rounded-4">';
+                data.doctors.forEach(d => {
+                    html += `<li class="list-group-item d-flex justify-content-between align-items-center p-3 border-light">
+                                <span class="fw-bold text-dark">${d.name}</span>
+                                <span class="badge bg-primary rounded-pill px-3">${d.count} Appts</span>
+                             </li>`;
+                });
+                html += '</ul></div>';
+
+                html += '</div>'; // end row
+                document.getElementById('analyticsContent').innerHTML = html;
+            } else {
+                document.getElementById('analyticsContent').innerHTML = '<p class="text-danger fw-bold text-center">Failed to load analytics.</p>';
+            }
+        }).catch(err => {
+            document.getElementById('analyticsContent').innerHTML = '<p class="text-danger fw-bold text-center">Connection Error.</p>';
+        });
+    }
+
+    // --- NEW: Load Schedule Prediction ---
+    function loadSchedulePrediction() {
+        document.getElementById('scheduleContent').innerHTML = '<div class="text-center mt-3 mb-5"><div class="spinner-border text-success" role="status"></div><p class="mt-3 text-muted fw-bold">Analyzing hospital traffic patterns...</p></div>';
+        fetch('/api/predict_schedule')
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                const formattedText = formatAIResponse(data.prediction);
+                document.getElementById('scheduleContent').innerHTML = `
+                    <div class="alert alert-success bg-white border-success border-start border-4 rounded-3 p-4 shadow-sm w-100" dir="auto">
+                        <h5 class="fw-bold text-success mb-3"><i class="bi bi-robot"></i> Smart Recommendations</h5>
+                        <div class="text-dark" style="font-size: 1.1rem; line-height: 1.8;">${formattedText}</div>
+                    </div>
+                `;
+            } else {
+                document.getElementById('scheduleContent').innerHTML = '<p class="text-danger fw-bold">Prediction Engine Offline.</p>';
+            }
+        });
+    }
+
+    // Helper function to render AI Markdown responses cleanly
+    function formatAIResponse(text) {
+        let html = text.replace(/\n/g, '<br>');
+        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/<br>\s*-\s/g, '<br>• ');
+        html = html.replace(/<br>\s*\*\s/g, '<br>• ');
+        return html;
+    }
+
+    function runAIAnalysis() {
+        const apptSelect = document.getElementById('appointmentSelect');
+        const symptoms = document.getElementById('symptomsInput').value;
+        const fileInput = document.getElementById('fileInput');
+
+        // Added validation for the new fields
+        const age = document.querySelector('input[name="age"]').value;
+        const gender = document.querySelector('select[name="gender"]').value;
+
+        if (!apptSelect.value) {
+            Swal.fire({ icon: 'warning', title: 'Missing Info', text: 'Please select an appointment first.' });
+            return;
+        }
+        if (!age || !gender) {
+            Swal.fire({ icon: 'warning', title: 'Missing Info', text: 'Please provide Patient Age and Gender.' });
+            return;
+        }
+        if (!symptoms && !fileInput.files[0]) {
+            Swal.fire({ icon: 'warning', title: 'Missing Info', text: 'Please enter symptoms or upload a file.' });
+            return;
+        }
+
+        currentApptId = apptSelect.value;
+        conversationHistory = [];
+
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('resultContent').style.display = 'none';
+        document.getElementById('startChatContainer').style.display = 'none';
+        document.getElementById('chatSection').style.display = 'none';
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('analyzeBtn').disabled = true;
+
+        const formData = new FormData(document.getElementById('analyzeForm'));
+
+        fetch('/api/predict', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('analyzeBtn').disabled = false;
+
+            if (data.status === 'success') {
+                document.getElementById('resultContent').style.display = 'block';
+                document.getElementById('startChatContainer').style.display = 'block';
+
+                document.getElementById('aiText').innerHTML = "<strong style='color: var(--primary-green);'>Predicted Disease:</strong> " + data.disease + "<br><br><strong style='color: var(--primary-green);'>Confidence Score:</strong> <span class='badge bg-success fs-6 ms-1'>" + data.score + "%</span>";
+
+                const badge = document.getElementById('severityBadge');
+                badge.innerText = data.score >= 80 ? 'High Confidence' : 'Review Needed';
+                badge.className = data.score >= 80 ? 'badge bg-success mb-3 px-3 py-2 rounded-pill shadow-sm' : 'badge bg-warning text-dark mb-3 px-3 py-2 rounded-pill shadow-sm';
+
+                let contextContent = "Patient Info: " + age + " years old, " + gender + "\n";
+                contextContent += "Symptoms: " + symptoms + "\n";
+                if (data.extracted_text) {
+                    contextContent += "File Context: " + data.extracted_text + "\n";
+                }
+                contextContent += "Initial AI Prediction: " + data.disease + "\n";
+                contextContent += "Confidence Score: " + data.score + "%\n";
+
+                conversationHistory.push({role: "user", content: "Context for our medical discussion: \n" + contextContent});
+                conversationHistory.push({role: "assistant", content: "Understood. I have reviewed the patient profile, symptoms, and the uploaded file/image."});
+
+                const initialMsg = "Analysis complete! The Confidence Score is <strong>" + data.score + "%</strong>.<br>Based on the patient's age and profile, feel free to ask me any questions about the diagnosis or suggested treatment plan.";
+
+                document.getElementById('chatMessages').innerHTML = `
+                    <div class="d-flex justify-content-start mb-4">
+                        <div class="me-3 mt-4">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px;"><i class="bi bi-robot fs-5"></i></div>
+                        </div>
+                        <div class="d-flex flex-column align-items-start" style="max-width: 80%;">
+                            <span class="small text-primary fw-bold mb-1 px-2">Medcare AI</span>
+                            <div class="p-3 shadow-sm text-dark" dir="auto" style="background-color: #E8F0FE; border-radius: 20px; border-top-left-radius: 4px; font-size: 1.05rem; line-height: 1.7; border: 1px solid #d2e3fc;">
+                                ${initialMsg}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                apptSelect.options[apptSelect.selectedIndex].remove();
+
+            } else {
+                document.getElementById('emptyState').style.display = 'block';
+                let errorDetailsHtml = '';
+                if (data.details) {
+                    errorDetailsHtml = `<small class="text-danger text-center mt-2 d-block" style="font-size: 0.75rem;">Technical details: ${data.details.substring(0, 100)}...</small>`;
+                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'System Alert',
+                    html: `<b>${data.message}</b>${errorDetailsHtml}`,
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#158765'
+                });
+            }
+        })
+        .catch(err => {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+            document.getElementById('analyzeBtn').disabled = false;
+            Swal.fire({ icon: 'error', title: 'System Error', text: 'Could not connect to the AI Server.' });
+        });
+    }
+
+    function startAIChat() {
+        document.getElementById('startChatContainer').style.display = 'none';
+        const chatSection = document.getElementById('chatSection');
+        chatSection.style.display = 'flex';
+
+        setTimeout(() => {
+            chatSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.getElementById('chatMessageInput').focus();
+        }, 100);
+    }
+
+    function sendChatMessage() {
+        const inputField = document.getElementById('chatMessageInput');
+        const userText = inputField.value.trim();
+        if (!userText) return;
+
+        const chatBox = document.getElementById('chatMessages');
+
+        chatBox.innerHTML += `
+            <div class="d-flex justify-content-end mb-4">
+                <div class="d-flex flex-column align-items-end" style="max-width: 80%;">
+                    <span class="small text-muted fw-bold mb-1 px-2">You</span>
+                    <div class="p-3 shadow-sm text-dark" dir="auto" style="background-color: #FCE4EC; border-radius: 20px; border-top-right-radius: 4px; font-size: 1.05rem; line-height: 1.7; border: 1px solid #f8bbd0;">
+                        ${userText}
+                    </div>
+                </div>
+                <div class="ms-3 mt-4">
+                    <img src="https://ui-avatars.com/api/?name=You&background=158765&color=fff" class="rounded-circle shadow-sm" style="width: 40px; height: 40px;">
+                </div>
+            </div>
+        `;
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+        inputField.value = '';
+
+        conversationHistory.push({role: "user", content: userText});
+
+        const typingId = "typing_" + Date.now();
+        chatBox.innerHTML += `
+            <div id="${typingId}" class="d-flex justify-content-start mb-4">
+                <div class="me-3 mt-4">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px;"><i class="bi bi-robot fs-5"></i></div>
+                </div>
+                <div class="d-flex flex-column align-items-start">
+                    <span class="small text-primary fw-bold mb-1 px-2">Medcare AI</span>
+                    <div class="p-3 shadow-sm text-muted fst-italic" dir="auto" style="background-color: #E8F0FE; border-radius: 20px; border-top-left-radius: 4px; border: 1px solid #d2e3fc;">
+                        Typing...
+                    </div>
+                </div>
+            </div>
+        `;
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: conversationHistory })
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById(typingId).remove();
+            if (data.status === 'success') {
+                const formattedReply = formatAIResponse(data.reply);
+                chatBox.innerHTML += `
+                    <div class="d-flex justify-content-start mb-4">
+                        <div class="me-3 mt-4">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px;"><i class="bi bi-robot fs-5"></i></div>
+                        </div>
+                        <div class="d-flex flex-column align-items-start" style="max-width: 80%;">
+                            <span class="small text-primary fw-bold mb-1 px-2">Medcare AI</span>
+                            <div class="p-3 shadow-sm text-dark" dir="auto" style="background-color: #E8F0FE; border-radius: 20px; border-top-left-radius: 4px; font-size: 1.05rem; line-height: 1.7; border: 1px solid #d2e3fc;">
+                                ${formattedReply}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                chatBox.scrollTop = chatBox.scrollHeight;
+                conversationHistory.push({role: "assistant", content: data.reply});
+            } else {
+                chatBox.innerHTML += '<div class="mb-4 text-center text-danger fw-bold">Error: Could not get response.</div>';
+            }
+        })
+        .catch(err => {
+            document.getElementById(typingId).remove();
+            chatBox.innerHTML += '<div class="mb-4 text-center text-danger fw-bold">System Error: Connection failed.</div>';
+        });
+    }
+
+    function handleChatKeyPress(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendChatMessage();
+        }
+    }
+
+    function sendFeedback(isAccurate) {
+        if (!currentApptId) return;
+
+        fetch('/api/feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ appointment_id: currentApptId, is_accurate: isAccurate })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                document.getElementById('feedbackSection').innerHTML = '<h5 class="text-success fw-bold mt-2"><i class="bi bi-check-circle-fill"></i> Thank you for the feedback!</h5><p class="text-muted small">This helps train the AI for the future.</p>';
+            }
+        });
+    }
+</script>
+{% endblock %}

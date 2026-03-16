@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold">Patients Management</h3>
+            <p class="text-muted mb-0">View, add, and manage comprehensive patient profiles.</p>
+        </div>
+        {% if session.get('role') in ['admin', 'doctor', 'nurse'] %}
+        <button type="button" class="btn btn-add-patient" data-bs-toggle="modal" data-bs-target="#addPatientModal">
+            <i class="bi bi-plus-lg"></i> Add New Patient
+        </button>
+        {% endif %}
+    </div>
+
+    <div class="table-responsive table-custom">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Patient Name</th>
+                    <th>Date of Birth</th>
+                    <th>Gender</th>
+                    <th>Phone</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patients %}
+                <tr>
+                    <td class="text-muted">#{{ patient.PatientID }}</td>
+                    <td class="fw-bold">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-light rounded-circle p-2 me-3 text-primary">{{ patient.FirstName[0] }}{{ patient.LastName[0] }}</div>
+                            {{ patient.FirstName }} {{ patient.LastName }}
+                        </div>
+                    </td>
+                    <td>{{ patient.DateOfBirth }}</td>
+                    <td>{{ patient.Gender }}</td>
+                    <td class="text-muted fw-bold">{{ patient.Phone if patient.Phone else 'N/A' }}</td>
+                    <td>
+                        <button type="button" class="action-btn" data-bs-toggle="modal" data-bs-target="#viewPatientModal{{ patient.PatientID }}">
+                            <i class="bi bi-person-lines-fill"></i> Full Profile
+                        </button>
+                        {% if session.get('role') in ['admin', 'doctor'] %}
+                        <form action="/delete_patient/{{ patient.PatientID }}" method="POST" class="d-inline">
+                            <button type="submit" class="action-btn text-danger border-0 bg-transparent"><i class="bi bi-trash"></i></button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                <div class="modal fade" id="viewPatientModal{{ patient.PatientID }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content rounded-4 border-0 shadow">
+                      <div class="modal-header bg-primary text-white border-0 pb-3 rounded-top-4">
+                        <h4 class="modal-title fw-bold"><i class="bi bi-person-bounding-box me-2"></i>Patient Profile</h4>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body p-4 bg-light">
+                          <div class="row">
+                              <div class="col-md-6 mb-3">
+                                  <div class="card border-0 shadow-sm rounded-4 h-100">
+                                      <div class="card-body">
+                                          <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">Personal Details</h6>
+                                          <p class="mb-1"><small class="text-muted">Name:</small> <span class="fw-bold">{{ patient.FirstName }} {{ patient.LastName }}</span></p>
+                                          <p class="mb-1"><small class="text-muted">DOB:</small> <span class="fw-bold">{{ patient.DateOfBirth }}</span></p>
+                                          <p class="mb-1"><small class="text-muted">Gender:</small> <span class="fw-bold">{{ patient.Gender }}</span></p>
+                                          <p class="mb-1"><small class="text-muted">Blood Type:</small> <span class="badge bg-danger">{{ patient.BloodType }}</span></p>
+                                          <p class="mb-0"><small class="text-muted">Room:</small>
+                                              {% if patient.RoomNumber %}<span class="badge bg-info text-dark">Room {{ patient.RoomNumber }}</span>{% else %}<span class="text-muted">N/A</span>{% endif %}
+                                          </p>
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="col-md-6 mb-3">
+                                  <div class="card border-0 shadow-sm rounded-4 h-100">
+                                      <div class="card-body">
+                                          <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">Contact & Address</h6>
+                                          <p class="mb-1"><small class="text-muted">Phone:</small> <span class="fw-bold">{{ patient.Phone if patient.Phone else 'N/A' }}</span></p>
+                                          <p class="mb-1"><small class="text-muted">Address:</small> <span class="fw-bold">{{ patient.Street }}, {{ patient.City }}</span></p>
+                                          <p class="mb-0"><small class="text-muted">ZIP:</small> <span class="fw-bold">{{ patient.ZipCode }}</span></p>
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="col-md-6 mb-3">
+                                  <div class="card border-0 shadow-sm rounded-4 h-100">
+                                      <div class="card-body">
+                                          <h6 class="fw-bold text-danger border-bottom pb-2 mb-3"><i class="bi bi-telephone-fill me-1"></i>Emergency Contact</h6>
+                                          {% if patient.EmgName %}
+                                              <p class="mb-1"><small class="text-muted">Name:</small> <span class="fw-bold">{{ patient.EmgName }} ({{ patient.EmgRelation }})</span></p>
+                                              <p class="mb-0"><small class="text-muted">Phone:</small> <span class="fw-bold">{{ patient.EmgPhone }}</span></p>
+                                          {% else %}
+                                              <p class="text-muted fst-italic mb-0">No emergency contact provided.</p>
+                                          {% endif %}
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="col-md-6 mb-3">
+                                  <div class="card border-0 shadow-sm rounded-4 h-100">
+                                      <div class="card-body">
+                                          <h6 class="fw-bold text-success border-bottom pb-2 mb-3"><i class="bi bi-shield-check me-1"></i>Insurance Information</h6>
+                                          {% if patient.InsProvider %}
+                                              <p class="mb-1"><small class="text-muted">Provider:</small> <span class="fw-bold">{{ patient.InsProvider }}</span></p>
+                                              <p class="mb-1"><small class="text-muted">Policy #:</small> <span class="fw-bold">{{ patient.InsPolicy }}</span></p>
+                                              <p class="mb-0"><small class="text-muted">Coverage:</small> <span class="fw-bold text-success">{{ patient.InsCoverage }}%</span></p>
+                                          {% else %}
+                                              <p class="text-muted fst-italic mb-0">No insurance details found.</p>
+                                          {% endif %}
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {% else %}
+                <tr><td colspan="6" class="text-center py-4 text-muted">No patients found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if session.get('role') in ['admin', 'doctor', 'nurse'] %}
+<div class="modal fade" id="addPatientModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold">Register New Patient</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form action="/add_patient" method="POST">
+          <h6 class="fw-bold text-primary mb-3">Personal Details</h6>
+          <div class="row">
+              <div class="col-md-6 mb-3">
+                  <label class="form-label text-muted fw-bold">First Name</label>
+                  <input type="text" class="form-control" name="first_name" pattern="[A-Za-z\s]+" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                  <label class="form-label text-muted fw-bold">Last Name</label>
+                  <input type="text" class="form-control" name="last_name" pattern="[A-Za-z\s]+" required>
+              </div>
+          </div>
+          <div class="row">
+              <div class="col-md-4 mb-3">
+                  <label class="form-label text-muted fw-bold">Date of Birth</label>
+                  <input type="date" class="form-control" name="dob" max="{{ today_date }}" required>
+              </div>
+              <div class="col-md-4 mb-3">
+                  <label class="form-label text-muted fw-bold">Gender</label>
+                  <select class="form-select" name="gender" required>
+                      <option value="Male">Male</option><option value="Female">Female</option>
+                  </select>
+              </div>
+              <div class="col-md-4 mb-3">
+                  <label class="form-label text-muted fw-bold">Blood Type</label>
+                  <select class="form-select" name="blood_type" required>
+                      <option value="A+">A+</option><option value="O+">O+</option><option value="B+">B+</option><option value="AB+">AB+</option>
+                      <option value="A-">A-</option><option value="O-">O-</option><option value="B-">B-</option><option value="AB-">AB-</option>
+                  </select>
+              </div>
+          </div>
+          <hr>
+          <h6 class="fw-bold text-primary mb-3">Contact & Address</h6>
+          <div class="mb-3">
+              <label class="form-label text-muted fw-bold">Phone Number</label>
+              <input type="tel" class="form-control" name="phone" pattern="[0-9]+" required>
+          </div>
+          <div class="row">
+              <div class="col-md-6 mb-3">
+                  <label class="form-label text-muted fw-bold">Street Address</label>
+                  <input type="text" class="form-control" name="street" required>
+              </div>
+              <div class="col-md-4 mb-3">
+                  <label class="form-label text-muted fw-bold">City</label>
+                  <input type="text" class="form-control" name="city" pattern="[A-Za-z\s]+" required>
+              </div>
+              <div class="col-md-2 mb-3">
+                  <label class="form-label text-muted fw-bold">Zip Code</label>
+                  <input type="text" class="form-control" name="zip_code" pattern="[0-9]+" required>
+              </div>
+          </div>
+          <hr>
+          <h6 class="fw-bold text-danger mb-3">Emergency Contact (Optional)</h6>
+          <div class="row">
+              <div class="col-md-4 mb-3">
+                  <label class="form-label text-muted fw-bold">Contact Name</label>
+                  <input type="text" class="form-control" name="emg_name">
+              </div>
+              <div class="col-md-4 mb-3">
+                  <label class="form-label text-muted fw-bold">Relationship</label>
+                  <input type="text" class="form-control" name="emg_relation" placeholder="e.g., Brother">
+              </div>
+              <div class="col-md-4 mb-3">
+                  <label class="form-label text-muted fw-bold">Contact Phone</label>
+                  <input type="tel" class="form-control" name="emg_phone" pattern="[0-9]+">
+              </div>
+          </div>
+          <hr>
+          <h6 class="fw-bold text-success mb-3">Insurance Info (Optional)</h6>
+          <div class="row">
+              <div class="col-md-4 mb-4">
+                  <label class="form-label text-muted fw-bold">Provider</label>
+                  <input type="text" class="form-control" name="ins_provider" placeholder="e.g., Allianz">
+              </div>
+              <div class="col-md-4 mb-4">
+                  <label class="form-label text-muted fw-bold">Policy Number</label>
+                  <input type="text" class="form-control" name="ins_policy">
+              </div>
+              <div class="col-md-4 mb-4">
+                  <label class="form-label text-muted fw-bold">Coverage %</label>
+                  <input type="number" step="0.01" max="100" class="form-control" name="ins_coverage" placeholder="80.00">
+              </div>
+          </div>
+          <div class="d-grid">
+              <button type="submit" class="btn btn-add-patient py-2">Save Full Profile</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

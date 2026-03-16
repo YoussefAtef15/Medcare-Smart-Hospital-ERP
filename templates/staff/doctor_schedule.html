@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold">Doctor Scheduling</h3>
+            <p class="text-muted mb-0">Manage clinic hours and shifts.</p>
+        </div>
+        {% if session.get('role') in ['admin', 'doctor'] %}
+        <button type="button" class="btn btn-add-patient" data-bs-toggle="modal" data-bs-target="#addScheduleModal">
+            <i class="bi bi-calendar-plus"></i> Add Schedule
+        </button>
+        {% endif %}
+    </div>
+
+    <div class="table-responsive table-custom">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Schedule ID</th>
+                    <th>Doctor Name</th>
+                    <th>Day of Week</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in schedules %}
+                <tr>
+                    <td class="text-muted fw-bold">#{{ s.ScheduleID }}</td>
+                    <td class="fw-bold">Dr. {{ s.FirstName }} {{ s.LastName }}</td>
+                    <td><span class="badge bg-primary rounded-pill px-3">{{ s.DayOfWeek }}</span></td>
+                    <td class="text-success fw-bold"><i class="bi bi-clock me-1"></i> {{ s.StartTime }}</td>
+                    <td class="text-danger fw-bold"><i class="bi bi-clock-history me-1"></i> {{ s.EndTime }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center py-4 text-muted">No schedules found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if session.get('role') in ['admin', 'doctor'] %}
+<div class="modal fade" id="addScheduleModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold">Add Working Hours</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form action="/add_schedule" method="POST">
+          <div class="mb-3">
+              <label class="form-label text-muted fw-bold">Doctor</label>
+              <select class="form-select" name="doctor_id" required>
+                  {% for d in doctors %}
+                  <option value="{{ d.DoctorID }}">Dr. {{ d.FirstName }} {{ d.LastName }}</option>
+                  {% endfor %}
+              </select>
+          </div>
+          <div class="mb-3">
+              <label class="form-label text-muted fw-bold">Day of Week</label>
+              <select class="form-select" name="day_of_week" required>
+                  <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+                  <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+              </select>
+          </div>
+          <div class="row">
+              <div class="col-md-6 mb-4">
+                  <label class="form-label text-muted fw-bold">Start Time</label>
+                  <input type="time" class="form-control" name="start_time" required>
+              </div>
+              <div class="col-md-6 mb-4">
+                  <label class="form-label text-muted fw-bold">End Time</label>
+                  <input type="time" class="form-control" name="end_time" required>
+              </div>
+          </div>
+          <div class="d-grid">
+              <button type="submit" class="btn btn-add-patient py-2">Save Schedule</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

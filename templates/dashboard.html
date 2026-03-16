@@ -1,0 +1,407 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+    {% if session.get('role') == 'admin' %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold">Hospital Overview</h3>
+            <p class="text-muted mb-0">Monitor hospital operations, appointments, and overall performance.</p>
+        </div>
+        <div class="date-badge px-4 shadow-sm border border-light text-primary bg-white">
+            <i class="bi bi-calendar-event me-2"></i> <strong>{{ current_date_display }}</strong>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <a href="/patients" class="btn btn-outline-primary w-100 py-2 fw-bold shadow-sm rounded-pill"><i class="bi bi-person-plus-fill me-2"></i>Add Patient</a>
+        </div>
+        <div class="col-md-3">
+            <a href="/appointments" class="btn btn-outline-success w-100 py-2 fw-bold shadow-sm rounded-pill"><i class="bi bi-calendar-plus me-2"></i>Create Appointment</a>
+        </div>
+        <div class="col-md-3">
+            <a href="/rooms" class="btn btn-outline-warning text-dark w-100 py-2 fw-bold shadow-sm rounded-pill"><i class="bi bi-door-open me-2"></i>Assign Room</a>
+        </div>
+        <div class="col-md-3">
+            <a href="/billing" class="btn btn-outline-danger w-100 py-2 fw-bold shadow-sm rounded-pill"><i class="bi bi-receipt me-2"></i>Create Bill</a>
+        </div>
+    </div>
+
+    <h5 class="fw-bold mb-3 border-bottom pb-2">Today's Statistics</h5>
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-white border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body py-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <small class="text-muted fw-bold text-uppercase">Total Patients</small>
+                        <h3 class="fw-bold text-dark mb-0 mt-1">{{ total_patients }}</h3>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;"><i class="bi bi-people fs-4"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-white border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body py-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <small class="text-muted fw-bold text-uppercase">Appointments Today</small>
+                        <h3 class="fw-bold text-dark mb-0 mt-1">{{ today_appointments }}</h3>
+                    </div>
+                    <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;"><i class="bi bi-calendar-check fs-4"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-white border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body py-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <small class="text-muted fw-bold text-uppercase">Available Rooms</small>
+                        <h3 class="fw-bold text-dark mb-0 mt-1">{{ available_rooms }}</h3>
+                    </div>
+                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;"><i class="bi bi-door-open fs-4"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-white border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body py-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <small class="text-muted fw-bold text-uppercase">Doctors On Duty</small>
+                        <h3 class="fw-bold text-dark mb-0 mt-1">{{ doctors_on_duty }}</h3>
+                    </div>
+                    <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;"><i class="bi bi-person-badge fs-4"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            {% if alerts %}
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-danger mb-3"><i class="bi bi-exclamation-triangle-fill me-2"></i>System Alerts</h5>
+                    {% for alert in alerts %}
+                    <div class="alert alert-{{ alert.type }} border-0 shadow-sm rounded-3 py-2 px-3 mb-2 d-flex align-items-center">
+                        <i class="bi {{ alert.icon }} me-3 fs-5"></i>
+                        <span class="fw-bold">{{ alert.msg }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">Upcoming Appointments</h5>
+                        <a href="/appointments" class="btn btn-sm btn-light fw-bold rounded-pill">View All</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-muted small">
+                                <tr>
+                                    <th class="border-0 rounded-start">Patient</th>
+                                    <th class="border-0">Doctor</th>
+                                    <th class="border-0">Time</th>
+                                    <th class="border-0 rounded-end">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for u in upcoming_appointments %}
+                                <tr>
+                                    <td class="fw-bold">{{ u.FirstName }} {{ u.LastName }}</td>
+                                    <td>Dr. {{ u.DLast }}</td>
+                                    <td class="text-primary fw-bold"><i class="bi bi-clock me-1"></i>{{ u.AppointmentTime[:5] }}</td>
+                                    <td>
+                                        {% if u.Status == 'Pending' %}
+                                            <span class="badge bg-warning text-dark rounded-pill px-2">Pending</span>
+                                        {% else %}
+                                            <span class="badge bg-success rounded-pill px-2">{{ u.Status }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="4" class="text-center py-3 text-muted">No upcoming appointments.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm border-0 h-100 rounded-4">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-3">Revenue (Paid vs Unpaid)</h6>
+                            <div style="position: relative; height: 200px; width: 100%; margin: 0 auto;">
+                                <canvas id="adminBalanceChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm border-0 h-100 rounded-4">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-3">Doctors by Department</h6>
+                            <div style="position: relative; height: 200px; width: 100%;">
+                                <canvas id="adminDeptChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 rounded-4 h-100 mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold mb-0">Recent Activity</h5>
+                        <a href="/audit" class="btn btn-sm btn-light fw-bold rounded-pill">Logs</a>
+                    </div>
+
+                    <div class="position-relative ps-3" style="border-left: 2px solid #E2E8F0;">
+                        {% for act in recent_activities %}
+                        <div class="mb-4 position-relative">
+                            <span class="position-absolute bg-primary rounded-circle" style="width: 12px; height: 12px; left: -23px; top: 4px; border: 2px solid white;"></span>
+                            <small class="text-muted fw-bold d-block mb-1">{{ act.ActionDate[11:16] }}</small>
+                            <p class="mb-0 fw-bold text-dark" style="font-size: 0.9rem;">
+                                <span class="text-primary">{{ act.Username }}</span> {{ act.Action }}
+                            </p>
+                            <small class="text-muted" style="font-size: 0.8rem;">Table: {{ act.TableName }}</small>
+                        </div>
+                        {% else %}
+                        <p class="text-muted small">No recent activities logged.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Balance Chart
+            const ctxBal = document.getElementById('adminBalanceChart');
+            if (ctxBal) {
+                new Chart(ctxBal, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Collected Revenue', 'Pending/Unpaid'],
+                        datasets: [{
+                            data: [{{ revenue }}, {{ unpaid_amount }}],
+                            backgroundColor: ['#158765', '#F56565'],
+                            borderWidth: 0,
+                            cutout: '75%'
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                });
+            }
+
+            // Department Bar Chart
+            const ctxDept = document.getElementById('adminDeptChart');
+            if (ctxDept) {
+                const deptLabels = {{ dept_labels_json | safe }};
+                const deptCounts = {{ dept_counts_json | safe }};
+                new Chart(ctxDept, {
+                    type: 'bar',
+                    data: {
+                        labels: deptLabels.length ? deptLabels : ['None'],
+                        datasets: [{
+                            label: 'Doctors',
+                            data: deptCounts.length ? deptCounts : [0],
+                            backgroundColor: '#3182CE',
+                            borderRadius: 5
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+                });
+            }
+        });
+    </script>
+
+
+    {% elif session.get('role') == 'doctor' %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold">Hello, <span class="text-capitalize">Dr. {{ session.get('username') }}</span> 👋</h3>
+            <p class="text-muted mb-0">Here is the latest update for your clinic.</p>
+        </div>
+        <div class="date-badge px-4 shadow-sm border border-light text-primary bg-white">
+            <i class="bi bi-calendar-event me-2"></i> <strong>{{ current_date_display }}</strong>
+        </div>
+    </div>
+
+    {% if emergency_cases > 0 %}
+    <div class="alert alert-danger rounded-4 border-0 shadow-sm mb-4 d-flex align-items-center">
+        <i class="bi bi-exclamation-triangle-fill fs-3 me-3"></i>
+        <div>
+            <h6 class="fw-bold mb-0">Critical Alert: Emergency Cases Detected</h6>
+            <span class="small">There are <strong>{{ emergency_cases }}</strong> high-risk predictions requiring immediate attention.</span>
+        </div>
+        <button class="btn btn-danger ms-auto rounded-pill btn-sm px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#emergencyModal">View Cases</button>
+    </div>
+
+    <div class="modal fade" id="emergencyModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow">
+          <div class="modal-header bg-danger text-white border-0">
+            <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i> High-Risk Patients</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-0">
+              <ul class="list-group list-group-flush">
+                  {% for case in emergency_details %}
+                  <li class="list-group-item p-4">
+                      <div class="d-flex justify-content-between align-items-center">
+                          <div>
+                              <h5 class="fw-bold text-dark mb-1">{{ case.FirstName }} {{ case.LastName }}</h5>
+                              <p class="text-muted mb-0 small"><i class="bi bi-calendar-event me-1"></i> Appt Date: {{ case.AppointmentDate }}</p>
+                          </div>
+                          <div class="text-end">
+                              <span class="badge bg-danger rounded-pill px-3 py-2 mb-1 fs-6">{{ case.Predicted_Disease }}</span><br>
+                              <small class="text-muted fw-bold">Severity Score: {{ case.Confidence_Score }}%</small>
+                          </div>
+                      </div>
+                  </li>
+                  {% endfor %}
+              </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card card-dark-green">
+                <div class="card-body">
+                    <div class="stat-icon"><i class="bi bi-calendar2-check"></i></div>
+                    <h6 class="card-subtitle mb-2">Total Appointments</h6>
+                    <h2 class="card-title fw-bold">{{ total_appointments }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="stat-icon text-warning"><i class="bi bi-robot"></i></div>
+                    <h6 class="card-subtitle mb-2 text-muted">AI Accuracy</h6>
+                    <h2 class="card-title fw-bold">{{ ai_accuracy }}%</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="stat-icon text-success"><i class="bi bi-people"></i></div>
+                    <h6 class="card-subtitle mb-2 text-muted">Total Patients</h6>
+                    <h2 class="card-title fw-bold">{{ total_patients }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="stat-icon text-danger"><i class="bi bi-door-closed"></i></div>
+                    <h6 class="card-subtitle mb-2 text-muted">Occupied Rooms</h6>
+                    <h2 class="card-title fw-bold">{{ occupied_rooms }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 mb-4">
+            <div class="card shadow-sm border-0 h-100 rounded-4">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-4">Appointment Trend</h5>
+                    <div style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="dynamicPatientChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0 h-100 rounded-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h5 class="fw-bold">Recent Appointments</h5>
+                    </div>
+                    <div class="schedule-list">
+                        {% for appt in recent_appointments %}
+                        <div class="schedule-item">
+                            <div class="time-col">{{ appt.AppointmentTime[:5] }}</div>
+                            <div class="details-col border-start border-success border-3 ps-3">
+                                <h6 class="mb-0 fw-bold">{{ appt.FirstName }} {{ appt.LastName }}</h6>
+                                <small class="text-muted">{{ appt.AppointmentDate }} - {{ appt.Status }}</small>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-muted small">No recent appointments found.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const ctxLine = document.getElementById('dynamicPatientChart');
+            if (ctxLine) {
+                const chartMonths = {{ chart_months_json | safe }};
+                const chartAppts = {{ chart_appts_json | safe }};
+
+                new Chart(ctxLine, {
+                    type: 'line',
+                    data: {
+                        labels: chartMonths.length ? chartMonths : ['No Data'],
+                        datasets: [{
+                            label: 'Appointments Booked',
+                            data: chartAppts.length ? chartAppts : [0],
+                            borderColor: '#114B43',
+                            backgroundColor: 'rgba(17, 75, 67, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } },
+                        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } }
+                    }
+                });
+            }
+        });
+    </script>
+
+
+    {% else %}
+    <div class="row mt-5">
+        <div class="col-md-8 mx-auto">
+            <div class="card border-0 shadow-sm rounded-4 p-5 text-center">
+                <h2 class="fw-bold text-primary mb-3"><i class="bi bi-heart-pulse text-danger"></i> Welcome to Medcare Portal</h2>
+                <p class="text-muted fs-5 mb-4">You are logged in as <strong>{{ session.get('role') }}</strong>.</p>
+                <p class="text-muted">Please use the sidebar to navigate to your appointments, medical records, and billing information.</p>
+
+                <div class="mt-4">
+                    {% if session.get('role') == 'patient' %}
+                        <a href="/appointments" class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm">View My Appointments</a>
+                    {% elif session.get('role') == 'nurse' %}
+                        <a href="/rooms" class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm">Manage Wards & Rooms</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

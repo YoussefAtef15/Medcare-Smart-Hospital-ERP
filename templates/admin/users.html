@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold">User Management & Security</h3>
+            <p class="text-muted mb-0">Create accounts, assign roles, and manage system access.</p>
+        </div>
+        <button type="button" class="btn btn-add-patient" data-bs-toggle="modal" data-bs-target="#addUserModal">
+            <i class="bi bi-person-plus-fill"></i> Create User
+        </button>
+    </div>
+
+    <div class="table-responsive table-custom">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Linked Profile</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td class="fw-bold text-muted">#{{ u.UserID }}</td>
+                    <td class="fw-bold text-dark">{{ u.Username }}</td>
+                    <td><span class="badge bg-secondary rounded-pill px-3">{{ u.Role }}</span></td>
+                    <td>
+                        {% if u.Role == 'Doctor' and u.DoctorID %} Dr. {{ u.DFirst }} {{ u.DLast }}
+                        {% elif u.Role == 'Nurse' and u.NurseID %} Nurse {{ u.NFirst }} {{ u.NLast }}
+                        {% elif u.Role == 'Patient' and u.PatientID %} Pt. {{ u.PFirst }} {{ u.PLast }}
+                        {% else %} <span class="text-muted fst-italic">System Admin</span> {% endif %}
+                    </td>
+                    <td>
+                        {% if u.IsActive == 1 %}
+                            <span class="badge bg-success bg-opacity-10 text-success px-3 py-1 rounded-pill"><i class="bi bi-circle-fill small me-1"></i> Active</span>
+                        {% else %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-1 rounded-pill"><i class="bi bi-slash-circle small me-1"></i> Disabled</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted">{{ u.CreatedAt[:10] }}</td>
+                    <td>
+                        {% if u.Username != 'admin' %}
+                        <form action="/toggle_user/{{ u.UserID }}" method="POST" style="display:inline;">
+                            {% if u.IsActive == 1 %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill fw-bold">Disable</button>
+                            {% else %}
+                                <button type="submit" class="btn btn-sm btn-outline-success rounded-pill fw-bold">Enable</button>
+                            {% endif %}
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold">Register Secure User</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form action="/add_user" method="POST">
+          <div class="mb-3">
+              <label class="form-label text-muted fw-bold">Username</label>
+              <input type="text" class="form-control" name="username" required autocomplete="off">
+          </div>
+          <div class="mb-3">
+              <label class="form-label text-muted fw-bold">Secure Password</label>
+              <input type="password" class="form-control" name="password" required>
+          </div>
+
+          <div class="row">
+              <div class="col-md-6 mb-4">
+                  <label class="form-label text-muted fw-bold">System Role</label>
+                  <select class="form-select" name="role" id="roleSelect" required>
+                      <option value="Admin" selected>Administrator</option>
+                      <option value="Doctor">Doctor</option>
+                      <option value="Nurse">Nurse</option>
+                      <option value="Patient">Patient</option>
+                  </select>
+              </div>
+              <div class="col-md-6 mb-4">
+                  <label class="form-label text-muted fw-bold">Account Status</label>
+                  <select class="form-select" name="is_active" required>
+                      <option value="1" selected>Active</option>
+                      <option value="0">Disabled</option>
+                  </select>
+              </div>
+          </div>
+
+          <div id="doctorSelectDiv" class="mb-4" style="display: none;">
+              <label class="form-label text-muted fw-bold">Link to Doctor Profile</label>
+              <select class="form-select" name="doctor_id" id="docSelect">
+                  <option value="" disabled selected>-- Select Doctor --</option>
+                  {% for d in doctors %}<option value="{{ d.DoctorID }}">Dr. {{ d.FirstName }} {{ d.LastName }}</option>{% endfor %}
+              </select>
+          </div>
+          <div id="nurseSelectDiv" class="mb-4" style="display: none;">
+              <label class="form-label text-muted fw-bold">Link to Nurse Profile</label>
+              <select class="form-select" name="nurse_id" id="nurseSelect">
+                  <option value="" disabled selected>-- Select Nurse --</option>
+                  {% for n in nurses %}<option value="{{ n.NurseID }}">{{ n.FirstName }} {{ n.LastName }}</option>{% endfor %}
+              </select>
+          </div>
+          <div id="patientSelectDiv" class="mb-4" style="display: none;">
+              <label class="form-label text-muted fw-bold">Link to Patient Profile</label>
+              <select class="form-select" name="patient_id" id="ptSelect">
+                  <option value="" disabled selected>-- Select Patient --</option>
+                  {% for p in patients %}<option value="{{ p.PatientID }}">{{ p.FirstName }} {{ p.LastName }}</option>{% endfor %}
+              </select>
+          </div>
+
+          <div class="d-grid">
+              <button type="submit" class="btn btn-add-patient py-2">Create Secure Account</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    // Dynamic logic to handle required fields based on role
+    document.getElementById('roleSelect').addEventListener('change', function() {
+        const role = this.value;
+
+        const docDiv = document.getElementById('doctorSelectDiv');
+        const nurseDiv = document.getElementById('nurseSelectDiv');
+        const ptDiv = document.getElementById('patientSelectDiv');
+
+        const docSel = document.getElementById('docSelect');
+        const nurseSel = document.getElementById('nurseSelect');
+        const ptSel = document.getElementById('ptSelect');
+
+        // Hide all and remove required
+        docDiv.style.display = 'none'; docSel.required = false; docSel.value = "";
+        nurseDiv.style.display = 'none'; nurseSel.required = false; nurseSel.value = "";
+        ptDiv.style.display = 'none'; ptSel.required = false; ptSel.value = "";
+
+        // Show and make required based on role
+        if (role === 'Doctor') {
+            docDiv.style.display = 'block';
+            docSel.required = true;
+        } else if (role === 'Nurse') {
+            nurseDiv.style.display = 'block';
+            nurseSel.required = true;
+        } else if (role === 'Patient') {
+            ptDiv.style.display = 'block';
+            ptSel.required = true;
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold">Appointments Management</h3>
+            <p class="text-muted mb-0">Manage hospital appointments, scheduling, and view statuses.</p>
+        </div>
+        {% if session.get('role') in ['admin', 'doctor'] %}
+        <button type="button" class="btn btn-add-patient" data-bs-toggle="modal" data-bs-target="#addApptModal">
+            <i class="bi bi-plus-lg"></i> Book Appointment
+        </button>
+        {% endif %}
+    </div>
+
+    <div class="table-responsive table-custom">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Appt ID</th>
+                    {% if session.get('role') != 'patient' %}
+                        <th>Patient Name</th>
+                    {% endif %}
+                    <th>Doctor Name</th>
+                    <th>Type</th>
+                    <th>Date & Time</th>
+                    <th>Status</th>
+                    {% if session.get('role') in ['admin', 'doctor'] %}
+                    <th>Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for appt in appointments %}
+                <tr>
+                    <td class="fw-bold text-muted">#{{ appt.AppointmentID }}</td>
+                    {% if session.get('role') != 'patient' %}
+                        <td><span class="fw-bold">{{ appt.PFirst }} {{ appt.PLast }}</span></td>
+                    {% endif %}
+                    <td>Dr. {{ appt.DFirst }} {{ appt.DLast }}</td>
+                    <td><span class="badge bg-secondary rounded-pill px-3">{{ appt.AppointmentType }}</span></td>
+                    <td>
+                        <i class="bi bi-calendar2-week text-primary me-2"></i>{{ appt.AppointmentDate }} <br>
+                        <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ appt.AppointmentTime }} - {{ appt.EndTime }}</small>
+                    </td>
+                    <td>
+                        {% if appt.Status == 'Completed' %}
+                            <span class="badge bg-success rounded-pill px-3">Completed</span>
+                        {% elif appt.Status == 'Pending' %}
+                            <span class="badge bg-warning text-dark rounded-pill px-3">Pending</span>
+                        {% else %}
+                            <span class="badge bg-danger rounded-pill px-3">{{ appt.Status }}</span>
+                        {% endif %}
+                    </td>
+                    {% if session.get('role') in ['admin', 'doctor'] %}
+                    <td>
+                        <button type="button" class="action-btn" data-bs-toggle="modal" data-bs-target="#editApptModal{{ appt.AppointmentID }}">
+                            <i class="bi bi-pencil"></i> Update Status
+                        </button>
+                    </td>
+                    {% endif %}
+                </tr>
+
+                <div class="modal fade" id="editApptModal{{ appt.AppointmentID }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content rounded-4 border-0 shadow">
+                      <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold">Update Appointment #{{ appt.AppointmentID }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body">
+                        <form action="/update_appointment/{{ appt.AppointmentID }}" method="POST">
+                          <div class="mb-4">
+                              <label class="form-label text-muted fw-bold">Status</label>
+                              <select class="form-select" name="status" required>
+                                  <option value="Pending" {% if appt.Status == 'Pending' %}selected{% endif %}>Pending</option>
+                                  <option value="Completed" {% if appt.Status == 'Completed' %}selected{% endif %}>Completed</option>
+                                  <option value="Canceled" {% if appt.Status == 'Canceled' %}selected{% endif %}>Canceled</option>
+                              </select>
+                          </div>
+                          <div class="d-grid">
+                              <button type="submit" class="btn btn-add-patient py-2">Save Changes</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">No appointments found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="addApptModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold">Book New Appointment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form action="/add_appointment" method="POST">
+          <div class="row">
+              <div class="col-md-6 mb-3">
+                  <label class="form-label text-muted fw-bold">Select Patient</label>
+                  <select class="form-select" name="patient_id" required>
+                      <option value="" disabled selected>-- Choose Patient --</option>
+                      {% for p in patients %}
+                      <option value="{{ p.PatientID }}">{{ p.FirstName }} {{ p.LastName }}</option>
+                      {% endfor %}
+                  </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                  <label class="form-label text-muted fw-bold">Select Doctor</label>
+                  <select class="form-select" name="doctor_id" required>
+                      <option value="" disabled selected>-- Choose Doctor --</option>
+                      {% for d in doctors %}
+                      <option value="{{ d.DoctorID }}">Dr. {{ d.FirstName }} {{ d.LastName }} ({{ d.Specialization }})</option>
+                      {% endfor %}
+                  </select>
+              </div>
+          </div>
+          <div class="mb-3">
+              <label class="form-label text-muted fw-bold">Appointment Type</label>
+              <select class="form-select" name="appointment_type" required>
+                  <option value="Consultation">Consultation</option>
+                  <option value="FollowUp">Follow-Up</option>
+                  <option value="Emergency">Emergency</option>
+              </select>
+          </div>
+          <div class="row">
+              <div class="col-md-4 mb-4">
+                  <label class="form-label text-muted fw-bold">Date</label>
+                  <input type="date" class="form-control" name="date" required>
+              </div>
+              <div class="col-md-4 mb-4">
+                  <label class="form-label text-muted fw-bold">Start Time</label>
+                  <input type="time" class="form-control" name="time" required>
+              </div>
+              <div class="col-md-4 mb-4">
+                  <label class="form-label text-muted fw-bold">End Time (Est.)</label>
+                  <input type="time" class="form-control" name="end_time" required>
+              </div>
+          </div>
+          <div class="d-grid">
+              <button type="submit" class="btn btn-add-patient py-2"><i class="bi bi-calendar-plus me-2"></i> Confirm Booking</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

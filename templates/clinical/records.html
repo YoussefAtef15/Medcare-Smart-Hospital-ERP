@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold">Medical Records</h3>
+            <p class="text-muted mb-0">Manage comprehensive patient histories, diagnoses, and treatments.</p>
+        </div>
+        {% if session.get('role') in ['admin', 'doctor'] %}
+        <button type="button" class="btn btn-add-patient" data-bs-toggle="modal" data-bs-target="#addRecordModal">
+            <i class="bi bi-journal-plus"></i> Create Record
+        </button>
+        {% endif %}
+    </div>
+
+    <div class="table-responsive table-custom">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Record ID</th>
+                    <th>Patient Name</th>
+                    <th>Doctor Name</th>
+                    <th>Visit Date</th>
+                    <th>Diagnosis</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in records %}
+                <tr>
+                    <td class="fw-bold text-muted">#{{ r.RecordID }}</td>
+                    <td class="fw-bold text-dark">{{ r.PFirst }} {{ r.PLast }}</td>
+                    <td>Dr. {{ r.DFirst }} {{ r.DLast }}</td>
+                    <td><i class="bi bi-calendar text-primary me-2"></i>{{ r.VisitDate }}</td>
+                    <td><span class="badge bg-light text-dark border px-3 py-1">{{ r.Diagnosis }}</span></td>
+                    <td>
+                        <button type="button" class="action-btn" data-bs-toggle="modal" data-bs-target="#viewRecordModal{{ r.RecordID }}">
+                            <i class="bi bi-eye"></i> View Details
+                        </button>
+                    </td>
+                </tr>
+
+                <div class="modal fade" id="viewRecordModal{{ r.RecordID }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered modal-xl">
+                    <div class="modal-content rounded-4 border-0 shadow">
+
+                      <div class="modal-header bg-primary text-white border-0 pb-3 rounded-top-4">
+                        <div>
+                            <h4 class="modal-title fw-bold mb-1"><i class="bi bi-journal-medical me-2"></i>Medical Record Details</h4>
+                            <span class="badge bg-white text-primary">Record ID: #{{ r.RecordID }}</span>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                      </div>
+
+                      <div class="modal-body p-4 bg-light">
+                          <div class="row">
+                              <div class="col-md-6">
+
+                                  <div class="card border-0 shadow-sm rounded-4 mb-3">
+                                      <div class="card-body">
+                                          <h6 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="bi bi-person me-2"></i>Patient Information</h6>
+                                          <div class="row">
+                                              <div class="col-6 mb-2"><small class="text-muted d-block">Name</small><span class="fw-bold">{{ r.PFirst }} {{ r.PLast }}</span></div>
+                                              <div class="col-6 mb-2"><small class="text-muted d-block">Age</small><span class="fw-bold">{{ r.Age }} Years</span></div>
+                                              <div class="col-6 mb-2"><small class="text-muted d-block">Gender</small><span class="fw-bold">{{ r.Gender }}</span></div>
+                                              <div class="col-6 mb-2"><small class="text-muted d-block">Blood Type</small><span class="badge bg-danger rounded-pill px-2">{{ r.BloodType }}</span></div>
+                                          </div>
+                                      </div>
+                                  </div>
+
+                                  <div class="card border-0 shadow-sm rounded-4 mb-3">
+                                      <div class="card-body">
+                                          <h6 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="bi bi-clipboard2-pulse me-2"></i>Diagnosis & Treatment</h6>
+                                          <div class="mb-3">
+                                              <small class="text-muted d-block">Diagnosis</small>
+                                              <span class="fw-bold text-danger">{{ r.Diagnosis }}</span>
+                                          </div>
+                                          <div>
+                                              <small class="text-muted d-block">Treatment Plan</small>
+                                              <span class="fw-bold">{{ r.Treatment if r.Treatment else 'No specific treatment recorded.' }}</span>
+                                          </div>
+                                      </div>
+                                  </div>
+
+                                  <div class="card border-0 shadow-sm rounded-4 mb-3">
+                                      <div class="card-body">
+                                          <h6 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="bi bi-exclamation-triangle me-2"></i>Known Allergies</h6>
+                                          {% if r.Allergies %}
+                                              <div class="d-flex flex-wrap gap-2">
+                                                  {% for allergy in r.Allergies %}
+                                                      <span class="badge bg-warning text-dark border"><i class="bi bi-virus me-1"></i>{{ allergy }}</span>
+                                                  {% endfor %}
+                                              </div>
+                                          {% else %}
+                                              <span class="text-muted small fst-italic">No known allergies.</span>
+                                          {% endif %}
+                                      </div>
+                                  </div>
+
+                              </div>
+
+                              <div class="col-md-6">
+
+                                  <div class="card border-0 shadow-sm rounded-4 mb-3">
+                                      <div class="card-body">
+                                          <h6 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="bi bi-calendar-event me-2"></i>Visit Information</h6>
+                                          <div class="row">
+                                              <div class="col-6 mb-2"><small class="text-muted d-block">Doctor</small><span class="fw-bold">Dr. {{ r.DFirst }} {{ r.DLast }}</span></div>
+                                              <div class="col-6 mb-2"><small class="text-muted d-block">Specialization</small><span class="fw-bold">{{ r.Specialization }}</span></div>
+                                              <div class="col-6 mb-2"><small class="text-muted d-block">Visit Date</small><span class="fw-bold">{{ r.VisitDate }}</span></div>
+                                              <div class="col-6 mb-2"><small class="text-muted d-block">Assigned Room</small>
+                                                  {% if r.RoomNumber %}
+                                                    <span class="badge bg-info text-dark rounded-pill px-2">Room {{ r.RoomNumber }}</span>
+                                                  {% else %}
+                                                    <span class="text-muted small">Not Admitted</span>
+                                                  {% endif %}
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </div>
+
+                                  <div class="card border-0 shadow-sm rounded-4 mb-3">
+                                      <div class="card-body">
+                                          <h6 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="bi bi-capsule me-2"></i>Prescriptions</h6>
+                                          {% if r.Prescriptions %}
+                                              <ul class="list-group list-group-flush small">
+                                                  {% for rx in r.Prescriptions %}
+                                                  <li class="list-group-item px-0 py-2 border-light">
+                                                      <div class="d-flex justify-content-between">
+                                                          <strong class="text-dark">{{ rx.MedicineName }}</strong>
+                                                          <span class="text-muted">{{ rx.Duration }}</span>
+                                                      </div>
+                                                      <div class="text-muted" style="font-size: 0.8rem;">{{ rx.Dosage }}</div>
+                                                  </li>
+                                                  {% endfor %}
+                                              </ul>
+                                          {% else %}
+                                              <span class="text-muted small fst-italic">No medications prescribed.</span>
+                                          {% endif %}
+                                      </div>
+                                  </div>
+
+                                  <div class="card border-0 shadow-sm rounded-4 mb-3">
+                                      <div class="card-body">
+                                          <h6 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="bi bi-journal-text me-2"></i>Doctor Notes</h6>
+                                          <div class="p-3 bg-white border rounded-3 text-dark" style="font-size: 0.9rem; line-height: 1.6;">
+                                              {{ r.Notes if r.Notes else 'No additional notes provided.' }}
+                                          </div>
+                                      </div>
+                                  </div>
+
+                              </div>
+                          </div>
+                      </div>
+
+                      <div class="modal-footer bg-white border-top-0 pt-0 pb-3 pe-4 justify-content-end">
+                          <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                          {% if session.get('role') in ['admin', 'doctor'] %}
+                          <button type="button" class="btn btn-outline-primary rounded-pill px-4 ms-2" data-bs-toggle="modal" data-bs-target="#editRecordModal{{ r.RecordID }}" data-bs-dismiss="modal">
+                              <i class="bi bi-pencil me-1"></i> Edit Record
+                          </button>
+                          <a href="/prescriptions" class="btn btn-primary rounded-pill px-4 ms-2">
+                              <i class="bi bi-plus-circle me-1"></i> Create Prescription
+                          </a>
+                          {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {% if session.get('role') in ['admin', 'doctor'] %}
+                <div class="modal fade" id="editRecordModal{{ r.RecordID }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content rounded-4 border-0 shadow">
+                      <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold">Update Record #{{ r.RecordID }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body p-4">
+                        <form action="/update_record/{{ r.RecordID }}" method="POST">
+                          <div class="mb-3">
+                              <label class="form-label text-muted fw-bold">Diagnosis</label>
+                              <input type="text" class="form-control" name="diagnosis" value="{{ r.Diagnosis }}" required>
+                          </div>
+                          <div class="mb-3">
+                              <label class="form-label text-muted fw-bold">Treatment</label>
+                              <input type="text" class="form-control" name="treatment" value="{{ r.Treatment if r.Treatment else '' }}">
+                          </div>
+                          <div class="mb-4">
+                              <label class="form-label text-muted fw-bold">Doctor Notes</label>
+                              <textarea class="form-control" name="doctor_notes" rows="3">{{ r.Notes }}</textarea>
+                          </div>
+                          <div class="d-grid">
+                              <button type="submit" class="btn btn-add-patient py-2">Save Updates</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
+
+                {% else %}
+                <tr><td colspan="6" class="text-center py-4 text-muted">No medical records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if session.get('role') in ['admin', 'doctor'] %}
+<div class="modal fade" id="addRecordModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold">Create Medical Record</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form action="/add_record" method="POST">
+          <div class="row">
+              <div class="col-md-6 mb-3">
+                  <label class="form-label text-muted fw-bold">Patient</label>
+                  <select class="form-select" name="patient_id" required>
+                      <option value="" disabled selected>Select Patient</option>
+                      {% for p in patients %}
+                      <option value="{{ p.PatientID }}">{{ p.FirstName }} {{ p.LastName }}</option>
+                      {% endfor %}
+                  </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                  <label class="form-label text-muted fw-bold">Doctor</label>
+                  <select class="form-select" name="doctor_id" required>
+                      <option value="" disabled selected>Select Doctor</option>
+                      {% for d in doctors %}
+                      <option value="{{ d.DoctorID }}">Dr. {{ d.FirstName }} {{ d.LastName }}</option>
+                      {% endfor %}
+                  </select>
+              </div>
+          </div>
+          <div class="mb-3">
+              <label class="form-label text-muted fw-bold">Visit Date</label>
+              <input type="date" class="form-control" name="visit_date" required>
+          </div>
+          <div class="mb-3">
+              <label class="form-label text-muted fw-bold">Diagnosis</label>
+              <input type="text" class="form-control" name="diagnosis" required>
+          </div>
+          <div class="mb-3">
+              <label class="form-label text-muted fw-bold">Treatment Plan</label>
+              <input type="text" class="form-control" name="treatment">
+          </div>
+          <div class="mb-3">
+              <label class="form-label text-muted fw-bold">Allergies (Comma separated)</label>
+              <input type="text" class="form-control" name="allergies" placeholder="e.g., Penicillin, Peanuts">
+          </div>
+          <div class="mb-4">
+              <label class="form-label text-muted fw-bold">Doctor Notes</label>
+              <textarea class="form-control" name="doctor_notes" rows="3"></textarea>
+          </div>
+          <div class="d-grid">
+              <button type="submit" class="btn btn-add-patient py-2">Create Record</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

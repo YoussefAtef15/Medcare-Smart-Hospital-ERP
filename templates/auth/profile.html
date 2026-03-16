@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold">My Profile</h3>
+            <p class="text-muted mb-0">View and update your personal contact information.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0 rounded-4 text-center py-4">
+                <div class="card-body">
+                    <img src="https://ui-avatars.com/api/?name={{ session.get('username') }}&background=0D8ABC&color=fff&size=100" class="rounded-circle mb-3 shadow-sm" alt="Profile">
+                    <h4 class="fw-bold text-dark mb-1">
+                        {% if session.get('role') == 'doctor' %}Dr. {{ profile_data.FirstName }} {{ profile_data.LastName }}
+                        {% elif session.get('role') in ['nurse', 'patient'] %}{{ profile_data.FirstName }} {{ profile_data.LastName }}
+                        {% else %}Administrator{% endif %}
+                    </h4>
+                    <span class="badge bg-primary rounded-pill px-3">{{ session.get('role').capitalize() }}</span>
+                    
+                    <hr class="my-4">
+                    <ul class="list-unstyled text-start px-3 mb-0">
+                        <li class="mb-2 text-muted"><i class="bi bi-person-badge me-2"></i> Username: <strong class="text-dark">{{ user_data.Username }}</strong></li>
+                        <li class="mb-2 text-muted"><i class="bi bi-clock-history me-2"></i> Account Created: <strong class="text-dark">{{ user_data.CreatedAt[:10] }}</strong></li>
+
+                        {% if session.get('role') == 'doctor' %}
+                            <li class="mb-2 text-muted"><i class="bi bi-diagram-3 me-2"></i> Dept: <strong class="text-dark">{{ profile_data.DepartmentName }}</strong></li>
+                            <li class="mb-2 text-muted"><i class="bi bi-award me-2"></i> Specs: <strong class="text-dark">{{ profile_data.Specialization }}</strong></li>
+                        {% elif session.get('role') == 'nurse' %}
+                            <li class="mb-2 text-muted"><i class="bi bi-diagram-3 me-2"></i> Dept: <strong class="text-dark">{{ profile_data.DepartmentName }}</strong></li>
+                            <li class="mb-2 text-muted"><i class="bi bi-clock me-2"></i> Shift: <strong class="text-dark">{{ profile_data.Shift }}</strong></li>
+                        {% elif session.get('role') == 'patient' %}
+                            <li class="mb-2 text-muted"><i class="bi bi-calendar me-2"></i> DOB: <strong class="text-dark">{{ profile_data.DateOfBirth }}</strong></li>
+                            <li class="mb-2 text-muted"><i class="bi bi-droplet-fill me-2 text-danger"></i> Blood: <strong class="text-dark">{{ profile_data.BloodType }}</strong></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4 text-primary border-bottom pb-2">Update Contact Information</h5>
+
+                    {% if session.get('role') == 'admin' %}
+                        <div class="alert alert-info rounded-3 border-0">
+                            <i class="bi bi-info-circle-fill me-2"></i> As an Administrator, your profile details are locked. To change credentials, please use the Change Password page.
+                        </div>
+                    {% else %}
+                        <form action="/profile" method="POST">
+                            {% if session.get('role') in ['doctor', 'nurse'] %}
+                                <div class="mb-3">
+                                    <label class="form-label text-muted fw-bold">Email Address</label>
+                                    <input type="email" class="form-control" name="email" value="{{ profile_data.Email if profile_data.Email else '' }}" required>
+                                </div>
+                            {% endif %}
+
+                            <div class="mb-3">
+                                <label class="form-label text-muted fw-bold">Phone Number</label>
+                                <input type="tel" class="form-control" name="phone" value="{{ phone }}" pattern="[0-9]{11}" minlength="11" maxlength="11" title="Please enter exactly 11 digits" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label text-muted fw-bold">Street Address</label>
+                                <input type="text" class="form-control" name="street" value="{{ profile_data.Street if profile_data.Street else '' }}">
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label text-muted fw-bold">City</label>
+                                    <input type="text" class="form-control" name="city" value="{{ profile_data.City if profile_data.City else '' }}" pattern="[A-Za-z\s]+">
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label text-muted fw-bold">Zip Code</label>
+                                    <input type="text" class="form-control" name="zip_code" value="{{ profile_data.ZipCode if profile_data.ZipCode else '' }}" pattern="[0-9]+">
+                                </div>
+                            </div>
+                            
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary px-4 fw-bold rounded-pill">Save Changes</button>
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
