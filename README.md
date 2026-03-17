@@ -1,39 +1,64 @@
-# 🏥 Medcare - Smart Hospital ERP System
+# 🏥 Medcare - Smart Hospital ERP
 
-![Python](https://img.shields.io/badge/Python-3.12-blue?style=for-the-badge&logo=python&logoColor=white)
-![Flask](https://img.shields.io/badge/Flask-3.0.2-black?style=for-the-badge&logo=flask&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-Database-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
-![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)
-![Groq AI](https://img.shields.io/badge/AI-Groq%20LLaMA3-FF4F00?style=for-the-badge&logo=artificial-intelligence)
+![Medcare Banner](https://img.shields.io/badge/Medcare-Smart_Hospital_System-158765?style=for-the-badge&logo=hospital)
+![Python](https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python)
+![Flask](https://img.shields.io/badge/Flask-3.0.2-black?style=flat-square&logo=flask)
+![SQLite](https://img.shields.io/badge/SQLite-Database-003B57?style=flat-square&logo=sqlite)
+![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=flat-square&logo=bootstrap)
+![Groq AI](https://img.shields.io/badge/AI-Groq_API-f56565?style=flat-square)
 
-Medcare is a comprehensive, AI-powered Hospital Management System (ERP) designed to streamline hospital operations, enhance patient care, and provide intelligent medical predictions. Built with Python and Flask, this system offers a robust architecture with role-based access control and real-time analytics.
+## 📌 Overview
+**Medcare** is a comprehensive, AI-powered Enterprise Resource Planning (ERP) system designed specifically for modern hospitals and healthcare facilities. It streamlines hospital operations, automates administrative workflows, and integrates cutting-edge Generative AI (via Groq) to assist medical professionals with disease prediction, medical document analysis, and smart scheduling.
 
 ## ✨ Key Features
 
-* 🔐 **Role-Based Access Control (RBAC):** Dedicated, secure portals for **Admins**, **Doctors**, **Nurses**, and **Patients**.
-* 🤖 **AI Diagnostic Assistant:** Integrates with the **Groq API (LLaMA-3.3-70b)** to analyze patient symptoms and uploaded medical documents (PDFs) to predict potential diseases and calculate severity scores.
-* 📊 **Interactive Dashboards:** Real-time analytics and statistics using **Chart.js** (Revenue tracking, appointment trends, doctor distributions).
-* 📅 **Advanced Scheduling:** Manage doctor availability, shifts, and handle patient appointment bookings efficiently.
-* 🛏️ **Ward & Room Management:** Real-time tracking of room occupancy, patient assignments, and maintenance status.
-* 💳 **Billing & Financials:** Generate invoices, process payments, and track outstanding hospital bills.
-* 🛡️ **High Security & Auditing:** Features password hashing (Werkzeug), protection against duplicate entries, secure sessions, and a comprehensive **Audit Log** to track all system actions.
+### 🔐 Role-Based Access Control (RBAC)
+Dedicated, secure dashboards dynamically tailored for 4 distinct user roles:
+* **Admin:** Full system oversight, user management, financial tracking, and audit logs.
+* **Doctor:** Medical records management, prescription generation, patient tracking, and AI diagnostic assistance.
+* **Nurse:** Ward/room assignments, patient monitoring, and shift management.
+* **Patient:** Personal appointment booking, billing history, and medical record viewing.
+
+### 🤖 Medcare AI Center (Powered by Groq)
+* **Diagnostic Assistant:** Analyzes patient symptoms, age, and gender to predict potential diseases with a calculated Confidence Score.
+* **Vision AI Integration:** Upload medical reports (PDF) or medical scans (X-Rays/MRIs via JPG/PNG) for automated AI contextual analysis.
+* **Smart Hospital Analytics:** Generates real-time insights on peak hours, common diagnoses, and busiest departments.
+* **Interactive AI Chat:** Doctors can chat securely with the AI to discuss specific diagnoses and treatment plans based on patient history.
+
+### 🏥 Core Modules
+* **Patient Management:** Complete CRUD operations for patient profiles, medical history, and demographics.
+* **Appointment Scheduling:** Real-time booking, status tracking (Pending, Completed, Canceled), and doctor availability management.
+* **Medical Records & Prescriptions:** Secure logging of visit details, diagnoses, treatments, allergies, and printable medication prescriptions.
+* **Billing & Finance:** Automated invoice generation (consultation, lab, meds), payment tracking (Full/Partial), and revenue analytics.
+* **Rooms & Wards:** Visual management of hospital capacity, real-time room status (Available, Occupied, Maintenance), and admission history.
+* **Staff Management:** Directories and shift scheduling for doctors and nurses.
+
+---
 
 ## 🛠️ Technology Stack
 
-**Backend:**
-* Python
-* Flask (Web Framework)
-* SQLite3 (Relational Database)
+| Component | Technology |
+| :--- | :--- |
+| **Backend Framework** | Python, Flask, Werkzeug |
+| **Database** | SQLite (Relational DB with 11 interlinked tables) |
+| **Frontend Integration** | HTML5, CSS3, Bootstrap 5, Vanilla JavaScript |
+| **Data Visualization** | Chart.js (Dynamic Dashboards) |
+| **Alerts & UI** | SweetAlert2 |
+| **AI Integration** | Groq API (LLMs and Vision Models via OpenAI SDK) |
+| **Deployment Prep** | Gunicorn |
 
-**Frontend:**
-* HTML5 / CSS3 / JavaScript
-* Bootstrap 5 (Responsive UI)
-* Chart.js (Data Visualization)
+---
 
-**AI & Utilities:**
-* **Groq API:** Ultra-fast LLM inference for medical predictions.
-* **PyPDF2:** Parsing uploaded medical records and prescriptions.
-* **Werkzeug Security:** Advanced password hashing.
+## 🗄️ Database Architecture
+The system utilizes a robust SQLite relational database designed for data integrity and cascading updates. Key entities include:
+* `Department`, `Doctor`, `Nurse` (Staff mapping)
+* `Patient`, `EmergencyContact` (Demographics & Relations)
+* `Appointment`, `Room` (Operations & Capacity)
+* `MedicalRecord`, `Prescription`, `Prescription_Item` (Clinical Data)
+* `Bill` (Financials)
+* `AI_Prediction`, `AuditLog` (System Intelligence & Security)
+
+---
 
 ## 📂 Project Structure
 
@@ -129,11 +154,22 @@ GROQ_API_KEY=your_api_key_here
 python app.py
 ```
 
-## 🔑 Default Test Accounts
+## 🔑 Default Credentials (Testing)
 
-Upon the first run, the system automatically initializes the master admin account:
+To facilitate testing and development, the database is pre-seeded with test accounts across all system roles. 
 
-* **Username:** `admin`
-* **Password:** `123456`
+> **⚠️ Important Note:** The password for **ALL** test accounts below is `123456`.
 
-> **Note:** You can use this account to log in, create doctors, nurses, and patient profiles, and explore the system's full functionality.
+### 👥 System Users
+
+| Role | Username | Password | Profile Details (From Seed Data) |
+| :--- | :--- | :--- | :--- |
+| **🛡️ Admin** | `admin` | `123456` | System Administrator (Full Access) |
+| **🩺 Doctor** | `dr.magdy` | `123456` | Dr. Magdy Yacoub (Cardiologist, Dept: Cardiology) |
+| **🩺 Doctor** | `dr.hisham` | `123456` | Dr. Hisham Sadek (Neurologist, Dept: Neurology) |
+| **💉 Nurse** | `nurse.heba` | `123456` | Nurse Heba Sayed (Morning Shift, Dept: Cardiology) |
+| **💉 Nurse** | `nurse.amr` | `123456` | Nurse Amr Gamal (Night Shift, Dept: Neurology) |
+| **🤒 Patient** | `pt.ahmed` | `123456` | Ahmed Mohamed (DOB: 1985, Blood Type: O+) |
+| **🤒 Patient** | `pt.salma` | `123456` | Salma Ibrahim (DOB: 1992, Blood Type: A-) |
+
+> **Note:** You can use the **Admin** account to log in, create doctors, nurses, and patient profiles, and explore the system's full functionality.
