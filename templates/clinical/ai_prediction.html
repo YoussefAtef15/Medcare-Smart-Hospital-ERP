@@ -144,7 +144,9 @@
                         </div>
                     </div>
                 </div>
-            </div> <div id="chatSection" class="row mt-4 mb-5" style="display: none;">
+            </div>
+
+            <div id="chatSection" class="row mt-4 mb-5" style="display: none;">
                 <div class="col-12">
                     <div class="card shadow-sm border-0 rounded-4 bg-white overflow-hidden">
 
@@ -201,13 +203,13 @@
             </div>
         </div>
 
-    </div> </div>
+    </div>
+</div>
 
 <script>
     let currentApptId = null;
-    let conversationHistory = []; // Array to maintain chat context
+    let conversationHistory = [];
 
-    // --- NEW: Load Hospital Analytics Data ---
     function loadHospitalAnalytics() {
         document.getElementById('analyticsContent').innerHTML = '<div class="text-center mt-5 mb-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-3 text-muted fw-bold">Generating Insights...</p></div>';
         fetch('/api/analytics')
@@ -216,7 +218,6 @@
             if(data.status === 'success') {
                 let html = '<div class="row">';
 
-                // Top Diseases Widget
                 html += '<div class="col-md-6 mb-4">';
                 html += '<h5 class="fw-bold text-danger mb-4"><i class="bi bi-activity me-2"></i> Most Common Diagnoses</h5>';
                 html += '<ul class="list-group list-group-flush shadow-sm rounded-4">';
@@ -228,7 +229,6 @@
                 });
                 html += '</ul></div>';
 
-                // Busy Doctors Widget
                 html += '<div class="col-md-6 mb-4">';
                 html += '<h5 class="fw-bold text-primary mb-4"><i class="bi bi-person-badge me-2"></i> Busiest Doctors</h5>';
                 html += '<ul class="list-group list-group-flush shadow-sm rounded-4">';
@@ -240,17 +240,16 @@
                 });
                 html += '</ul></div>';
 
-                html += '</div>'; // end row
+                html += '</div>';
                 document.getElementById('analyticsContent').innerHTML = html;
             } else {
-                document.getElementById('analyticsContent').innerHTML = '<p class="text-danger fw-bold text-center">Failed to load analytics.</p>';
+                document.getElementById('analyticsContent').innerHTML = '<p class="text-danger fw-bold text-center"><i class="bi bi-exclamation-circle me-2"></i>We couldn\'t load the hospital insights right now. Please try again later.</p>';
             }
         }).catch(err => {
-            document.getElementById('analyticsContent').innerHTML = '<p class="text-danger fw-bold text-center">Connection Error.</p>';
+            document.getElementById('analyticsContent').innerHTML = '<p class="text-danger fw-bold text-center"><i class="bi bi-wifi-off me-2"></i>Connection lost. Please check your network and try again.</p>';
         });
     }
 
-    // --- NEW: Load Schedule Prediction ---
     function loadSchedulePrediction() {
         document.getElementById('scheduleContent').innerHTML = '<div class="text-center mt-3 mb-5"><div class="spinner-border text-success" role="status"></div><p class="mt-3 text-muted fw-bold">Analyzing hospital traffic patterns...</p></div>';
         fetch('/api/predict_schedule')
@@ -265,18 +264,21 @@
                     </div>
                 `;
             } else {
-                document.getElementById('scheduleContent').innerHTML = '<p class="text-danger fw-bold">Prediction Engine Offline.</p>';
+                document.getElementById('scheduleContent').innerHTML = '<p class="text-danger fw-bold"><i class="bi bi-exclamation-triangle me-2"></i>The smart scheduling engine is temporarily unavailable. Please try again shortly.</p>';
             }
         });
     }
 
-    // Helper function to render AI Markdown responses cleanly
     function formatAIResponse(text) {
-        let html = text.replace(/\n/g, '<br>');
-        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        html = html.replace(/<br>\s*-\s/g, '<br>• ');
-        html = html.replace(/<br>\s*\*\s/g, '<br>• ');
-        return html;
+        let html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        let lines = html.split('\n');
+        let formattedLines = lines.map(line => {
+            if (line.trim() === '') return '<br>';
+            let trimmed = line.replace(/^\s*-\s/, '• ');
+            trimmed = trimmed.replace(/^\s*\*\s/, '• ');
+            return `<div dir="auto">${trimmed}</div>`;
+        });
+        return formattedLines.join('');
     }
 
     function runAIAnalysis() {
@@ -284,20 +286,19 @@
         const symptoms = document.getElementById('symptomsInput').value;
         const fileInput = document.getElementById('fileInput');
 
-        // Added validation for the new fields
         const age = document.querySelector('input[name="age"]').value;
         const gender = document.querySelector('select[name="gender"]').value;
 
         if (!apptSelect.value) {
-            Swal.fire({ icon: 'warning', title: 'Missing Info', text: 'Please select an appointment first.' });
+            Swal.fire({ icon: 'warning', title: 'Action Required', text: 'Please select a pending appointment from the list to proceed.' });
             return;
         }
         if (!age || !gender) {
-            Swal.fire({ icon: 'warning', title: 'Missing Info', text: 'Please provide Patient Age and Gender.' });
+            Swal.fire({ icon: 'warning', title: 'Action Required', text: 'We need the patient\'s age and gender to provide an accurate analysis.' });
             return;
         }
         if (!symptoms && !fileInput.files[0]) {
-            Swal.fire({ icon: 'warning', title: 'Missing Info', text: 'Please enter symptoms or upload a file.' });
+            Swal.fire({ icon: 'warning', title: 'Action Required', text: 'Please describe the patient\'s symptoms or upload a medical document.' });
             return;
         }
 
@@ -326,7 +327,7 @@
                 document.getElementById('resultContent').style.display = 'block';
                 document.getElementById('startChatContainer').style.display = 'block';
 
-                document.getElementById('aiText').innerHTML = "<strong style='color: var(--primary-green);'>Predicted Disease:</strong> " + data.disease + "<br><br><strong style='color: var(--primary-green);'>Confidence Score:</strong> <span class='badge bg-success fs-6 ms-1'>" + data.score + "%</span>";
+                document.getElementById('aiText').innerHTML = "<div dir='auto'><strong style='color: var(--primary-green);'>Predicted Disease:</strong> " + data.disease + "</div><div dir='auto' class='mt-2'><strong style='color: var(--primary-green);'>Confidence Score:</strong> <span class='badge bg-success fs-6 ms-1'>" + data.score + "%</span></div>";
 
                 const badge = document.getElementById('severityBadge');
                 badge.innerText = data.score >= 80 ? 'High Confidence' : 'Review Needed';
@@ -340,10 +341,13 @@
                 contextContent += "Initial AI Prediction: " + data.disease + "\n";
                 contextContent += "Confidence Score: " + data.score + "%\n";
 
+                // Strict language constraint added to prevent Llama-3 hallucinations
+                contextContent += "CRITICAL INSTRUCTION: You must strictly reply in the same language the user speaks (Arabic or English). NEVER output Chinese characters, Pinyin, or any other unauthorized languages.\n";
+
                 conversationHistory.push({role: "user", content: "Context for our medical discussion: \n" + contextContent});
                 conversationHistory.push({role: "assistant", content: "Understood. I have reviewed the patient profile, symptoms, and the uploaded file/image."});
 
-                const initialMsg = "Analysis complete! The Confidence Score is <strong>" + data.score + "%</strong>.<br>Based on the patient's age and profile, feel free to ask me any questions about the diagnosis or suggested treatment plan.";
+                const initialMsg = `<div dir="auto">Analysis complete! The Confidence Score is <strong>${data.score}%</strong>.</div><div dir="auto" class="mt-2">Based on the patient's age and profile, feel free to ask me any questions about the diagnosis or suggested treatment plan.</div>`;
 
                 document.getElementById('chatMessages').innerHTML = `
                     <div class="d-flex justify-content-start mb-4">
@@ -363,15 +367,18 @@
 
             } else {
                 document.getElementById('emptyState').style.display = 'block';
-                let errorDetailsHtml = '';
-                if (data.details) {
-                    errorDetailsHtml = `<small class="text-danger text-center mt-2 d-block" style="font-size: 0.75rem;">Technical details: ${data.details.substring(0, 100)}...</small>`;
+
+                let displayMessage = "We couldn't complete the analysis at this time. Please try again later.";
+
+                if (data.message && !data.message.includes('__init__') && !data.message.includes('keyword argument') && !data.message.includes('API Key') && !data.message.includes('Traceback')) {
+                    displayMessage = data.message;
                 }
+
                 Swal.fire({
                     icon: 'error',
-                    title: 'System Alert',
-                    html: `<b>${data.message}</b>${errorDetailsHtml}`,
-                    confirmButtonText: 'OK',
+                    title: 'Analysis Unsuccessful',
+                    text: displayMessage,
+                    confirmButtonText: 'Understood',
                     confirmButtonColor: '#158765'
                 });
             }
@@ -380,7 +387,7 @@
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('emptyState').style.display = 'block';
             document.getElementById('analyzeBtn').disabled = false;
-            Swal.fire({ icon: 'error', title: 'System Error', text: 'Could not connect to the AI Server.' });
+            Swal.fire({ icon: 'error', title: 'Connection Error', text: 'We are having trouble connecting to the AI server. Please check your internet connection and try again.' });
         });
     }
 
@@ -402,12 +409,16 @@
 
         const chatBox = document.getElementById('chatMessages');
 
+        const formattedUserText = userText.split('\n').map(line => {
+            return line.trim() === '' ? '<br>' : `<div dir="auto">${line}</div>`;
+        }).join('');
+
         chatBox.innerHTML += `
             <div class="d-flex justify-content-end mb-4">
                 <div class="d-flex flex-column align-items-end" style="max-width: 80%;">
                     <span class="small text-muted fw-bold mb-1 px-2">You</span>
                     <div class="p-3 shadow-sm text-dark" dir="auto" style="background-color: #FCE4EC; border-radius: 20px; border-top-right-radius: 4px; font-size: 1.05rem; line-height: 1.7; border: 1px solid #f8bbd0;">
-                        ${userText}
+                        ${formattedUserText}
                     </div>
                 </div>
                 <div class="ms-3 mt-4">
@@ -463,12 +474,12 @@
                 chatBox.scrollTop = chatBox.scrollHeight;
                 conversationHistory.push({role: "assistant", content: data.reply});
             } else {
-                chatBox.innerHTML += '<div class="mb-4 text-center text-danger fw-bold">Error: Could not get response.</div>';
+                chatBox.innerHTML += '<div class="mb-4 text-center text-danger fw-bold"><i class="bi bi-exclamation-circle me-1"></i> Medcare AI is currently unresponsive. Please try asking again.</div>';
             }
         })
         .catch(err => {
             document.getElementById(typingId).remove();
-            chatBox.innerHTML += '<div class="mb-4 text-center text-danger fw-bold">System Error: Connection failed.</div>';
+            chatBox.innerHTML += '<div class="mb-4 text-center text-danger fw-bold"><i class="bi bi-wifi-off me-1"></i> Connection lost. Please ensure you are connected to the internet.</div>';
         });
     }
 

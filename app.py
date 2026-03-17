@@ -305,7 +305,7 @@ def dashboard():
 
     today_str = datetime.today().strftime('%Y-%m-%d')
     today_appointments = \
-    conn.execute('SELECT COUNT(*) FROM Appointment WHERE AppointmentDate = ?', (today_str,)).fetchone()[0]
+        conn.execute('SELECT COUNT(*) FROM Appointment WHERE AppointmentDate = ?', (today_str,)).fetchone()[0]
     doctors_on_duty = conn.execute('SELECT COUNT(*) FROM Doctor').fetchone()[0]
     patients_waiting = conn.execute('SELECT COUNT(*) FROM Appointment WHERE Status = "Pending"').fetchone()[0]
 
@@ -434,7 +434,8 @@ def patients_page():
         ORDER BY p.PatientID ASC
     ''').fetchall()
     conn.close()
-    return render_template('clinical/patients.html', patients=patients, today_date=datetime.today().strftime('%Y-%m-%d'))
+    return render_template('clinical/patients.html', patients=patients,
+                           today_date=datetime.today().strftime('%Y-%m-%d'))
 
 
 @app.route('/appointments')
@@ -1169,6 +1170,44 @@ def ai_feedback():
     conn.close()
 
     return jsonify({'status': 'success'})
+
+
+# --- NEW ROUTE: EDIT PATIENT ---
+@app.route('/edit_patient/<int:patient_id>', methods=['POST'])
+def edit_patient(patient_id):
+    if session.get('role') not in ['admin', 'doctor']:
+        flash('Access denied.', 'error')
+        return redirect(url_for('patients_page'))
+
+    try:
+        data = request.form
+        conn = get_db_connection()
+
+        # Update main Patient table
+        conn.execute('''
+            UPDATE Patient 
+            SET FirstName = ?, LastName = ?, Street = ?, City = ?, ZipCode = ?
+            WHERE PatientID = ?
+        ''', (data['first_name'], data['last_name'], data['street'], data['city'], data['zip_code'], patient_id))
+
+        # Update Patient_Phone table (Clean approach: delete existing, insert new)
+        conn.execute('DELETE FROM Patient_Phone WHERE PatientID = ?', (patient_id,))
+        if data.get('phone'):
+            conn.execute('INSERT INTO Patient_Phone (PatientID, Phone) VALUES (?, ?)', (patient_id, data['phone']))
+
+        # Save and log the audit
+        conn.commit()
+        log_audit(session.get('user_id'), f"Updated details for Patient #{patient_id}", 'Patient', patient_id)
+
+        flash('Patient details updated successfully!', 'success')
+    except Exception as e:
+        flash(f'An error occurred while updating the patient: {str(e)}', 'error')
+    finally:
+        # Guarantee connection is closed even if an error occurs
+        conn.close()
+
+
+    return redirect(url_for('patients_page'))
 
 
 if __name__ == '__main__':

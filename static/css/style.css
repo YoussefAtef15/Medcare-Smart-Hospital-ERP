@@ -2,7 +2,7 @@
 
 :root {
     --bg-color: #F4F7F6;
-    --sidebar-bg: #114B43; /* Dark green from image */
+    --sidebar-bg: #114B43; /* Dark emerald from image */
     --primary-green: #158765;
     --text-dark: #2C3E50;
     --text-light: #A0B2AF;
@@ -15,7 +15,9 @@ body {
     overflow-x: hidden;
 }
 
-/* Sidebar Styling */
+/* =========================================
+   SIDEBAR STYLING
+   ========================================= */
 .sidebar {
     position: fixed;
     top: 0;
@@ -28,6 +30,7 @@ body {
     border-top-right-radius: 30px;
     border-bottom-right-radius: 30px;
     z-index: 1000;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
 }
 
 .sidebar-brand {
@@ -52,6 +55,7 @@ body {
     text-decoration: none;
     font-weight: 600;
     transition: 0.3s;
+    position: relative; /* Required for absolute positioning of the indicator line */
 }
 
 .sidebar a i {
@@ -59,19 +63,66 @@ body {
     font-size: 18px;
 }
 
+/* Sidebar Links Hover & Active State */
 .sidebar a:hover, .sidebar a.active {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: transparent;
     color: white;
-    border-left: 4px solid var(--primary-green);
+    border-right: 4px solid var(--primary-green); /* Moved border to the right */
+    background-image: linear-gradient(to bottom, transparent 0%, rgba(26, 213, 182, 0.4) 100%);
+    box-shadow: 0 0 10px rgba(26, 213, 182, 0.5);
+    transform: translateX(5px); /* Smooth slide effect */
 }
 
-/* Main Content */
+/* Active Indicator Line (Moved to the right) */
+.sidebar a::before {
+    content: "";
+    position: absolute;
+    right: 0; /* Positioned exactly on the right edge */
+    top: 0;
+    height: 100%;
+    width: 0;
+    background: #1AD5B6;
+    transition: 0.3s;
+}
+
+.sidebar a:hover::before,
+.sidebar a.active::before {
+    width: 4px;
+}
+
+/* =========================================
+   LOGOUT BUTTON ENHANCEMENTS
+   ========================================= */
+/* 1. Reset inherited sidebar styles for the footer button */
+.sidebar-footer a::before {
+    display: none; /* Removes the right indicator line */
+}
+
+.sidebar-footer a {
+    border-right: none !important; /* Removes the green border */
+    transform: none !important; /* Disables the slide-right effect */
+    background-image: none !important; /* Removes the green gradient */
+    box-shadow: none !important; /* Resets shadow */
+    transition: all 0.3s ease;
+}
+
+/* 2. Apply destructive action styling (Red theme for logout) */
+.sidebar-footer a:hover {
+    background-color: #dc3545 !important; /* Bootstrap danger red */
+    color: white !important;
+    border-color: #dc3545 !important;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4) !important; /* Soft red glow */
+    transform: translateY(-3px) !important; /* Elegant upward lift instead of side slide */
+}
+
+/* =========================================
+   MAIN CONTENT & TOP NAVBAR
+   ========================================= */
 .main-content {
     margin-left: 260px;
     padding: 30px;
 }
 
-/* Top Navbar */
 .top-navbar {
     background: white;
     border-radius: 20px;
@@ -120,7 +171,9 @@ body {
     box-shadow: 0 4px 10px rgba(0,0,0,0.02);
 }
 
-/* Stats Cards */
+/* =========================================
+   CARDS & TABLES
+   ========================================= */
 .stat-card {
     border: none;
     border-radius: 20px;
@@ -158,7 +211,6 @@ body {
     color: white;
 }
 
-/* Schedule List */
 .schedule-item {
     display: flex;
     margin-bottom: 20px;
@@ -171,17 +223,139 @@ body {
 }
 
 /* Custom Tables for CRUD Pages */
-.table-custom { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
-.table-custom thead th { background: #F4F7F6; color: var(--text-light); font-weight: 700; border-bottom: none; padding: 15px 20px; }
-.table-custom tbody td { padding: 15px 20px; vertical-align: middle; border-bottom: 1px solid #f0f0f0; font-weight: 600;}
-.action-btn { background: #F4F7F6; color: var(--text-dark); border: none; padding: 5px 10px; border-radius: 8px; margin-right: 5px; transition: 0.2s;}
-.action-btn:hover { background: var(--primary-green); color: white; }
-.action-btn.delete:hover { background: #dc3545; color: white; }
+.table-custom {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+
+.table-custom thead th {
+    background: #F4F7F6;
+    color: var(--text-light);
+    font-weight: 700;
+    border-bottom: none;
+    padding: 15px 20px;
+}
+
+.table-custom tbody td {
+    padding: 15px 20px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f0f0;
+    font-weight: 600;
+}
+
+.action-btn {
+    background: #F4F7F6;
+    color: var(--text-dark);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 8px;
+    margin-right: 5px;
+    transition: 0.2s;
+}
+
+.action-btn:hover {
+    background: var(--primary-green);
+    color: white;
+}
+
+.action-btn.delete:hover {
+    background: #dc3545;
+    color: white;
+}
 
 /* --- Search Suggestions Styles --- */
 .search-item {
     transition: background-color 0.2s ease;
 }
+
 .search-item:hover {
     background-color: #F4F7F6;
+}
+
+/* =========================================
+   MOBILE RESPONSIVENESS (MEDIA QUERIES)
+   ========================================= */
+@media (max-width: 991px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+        box-shadow: 5px 0 15px rgba(0,0,0,0.1);
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 15px;
+    }
+
+    .search-bar {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 576px) {
+    .search-bar {
+        display: none !important;
+    }
+    .top-navbar {
+        padding: 10px;
+    }
+}
+
+/* =========================================
+   SWEETALERT2 OVERRIDE (MODERN UI POPUP)
+   ========================================= */
+/* Themed backdrop with blur effect */
+div:where(.swal2-container).swal2-backdrop-show {
+    background: rgba(17, 75, 67, 0.5) !important;
+    backdrop-filter: blur(3px);
+}
+
+/* Main popup container styling */
+div:where(.swal2-container) div:where(.swal2-popup) {
+    border-radius: 24px !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15) !important;
+    font-family: 'Nunito', sans-serif !important;
+    border: none !important;
+    padding: 2em !important;
+}
+
+/* Title text */
+div:where(.swal2-container) h2:where(.swal2-title) {
+    font-weight: 800 !important;
+    color: var(--text-dark) !important;
+    padding-top: 10px !important;
+}
+
+/* Body message text */
+div:where(.swal2-container) div:where(.swal2-html-container) {
+    color: var(--text-light) !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    margin-top: 10px !important;
+}
+
+/* Primary confirm button (Pill shape to match dashboard) */
+div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
+    background-color: var(--primary-green) !important;
+    border-radius: 50px !important;
+    padding: 12px 35px !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    box-shadow: 0 4px 15px rgba(21, 135, 101, 0.3) !important;
+    transition: all 0.3s ease !important;
+    margin-top: 15px !important;
+}
+
+/* Button hover animation */
+div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 6px 20px rgba(21, 135, 101, 0.4) !important;
+    background-color: #0f664b !important;
 }

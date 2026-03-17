@@ -35,7 +35,7 @@
 <body>
 
     {% if request.endpoint != 'login' %}
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <i class="bi bi-hospital"></i> Medcare ERP
         </div>
@@ -94,14 +94,18 @@
         {% if request.endpoint != 'login' %}
         <nav class="navbar navbar-expand-lg top-navbar mb-4">
             <div class="container-fluid">
+                <button class="btn d-lg-none me-2 px-1 py-0" type="button" onclick="document.getElementById('sidebar').classList.toggle('show')">
+                    <i class="bi bi-list fs-2 text-dark"></i>
+                </button>
+
                 <form class="d-flex search-bar position-relative" autocomplete="off">
                     <i class="bi bi-search"></i>
-                    <input class="form-control border-0 bg-transparent" type="search" id="searchInput" placeholder="Global Search (Patients, Appointments)...">
+                    <input class="form-control border-0 bg-transparent" type="search" id="searchInput" placeholder="Global Search...">
                     <div id="searchSuggestions" class="position-absolute bg-white shadow rounded w-100" style="top: 100%; left: 0; display: none; z-index: 1050; max-height: 250px; overflow-y: auto; margin-top: 10px;"></div>
                 </form>
 
-                <div class="d-flex align-items-center">
-                    <div class="dropdown me-4">
+                <div class="d-flex align-items-center ms-auto">
+                    <div class="dropdown me-3">
                         <div class="notification-icon position-relative" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
                             <i class="bi bi-bell"></i>
                             {% if session.get('notifications') %}
