@@ -2,29 +2,29 @@
 
 {% block content %}
 <div class="container-fluid px-0">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
         <div>
             <h3 class="fw-bold">Medcare AI Center</h3>
             <p class="text-muted mb-0">Powered by Groq. Comprehensive Disease Prediction & Hospital Analytics.</p>
         </div>
-        <div class="date-badge text-primary border border-primary">
+        <div class="date-badge text-primary border border-primary text-nowrap">
             <i class="bi bi-cpu-fill"></i> Advanced AI Suite
         </div>
     </div>
 
-    <ul class="nav nav-pills mb-4 bg-white p-2 rounded-pill shadow-sm d-inline-flex" id="aiTabs" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active fw-bold rounded-pill px-4" id="disease-tab" data-bs-toggle="pill" data-bs-target="#disease" type="button" role="tab">
+    <ul class="nav nav-pills mb-4 bg-white p-2 rounded-4 shadow-sm d-flex flex-column flex-md-row gap-2" id="aiTabs" role="tablist">
+      <li class="nav-item flex-fill" role="presentation">
+        <button class="nav-link active fw-bold rounded-pill px-4 w-100 text-md-center text-start" id="disease-tab" data-bs-toggle="pill" data-bs-target="#disease" type="button" role="tab">
             <i class="bi bi-heart-pulse me-2"></i> Disease Prediction
         </button>
       </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link fw-bold rounded-pill px-4" id="analytics-tab" data-bs-toggle="pill" data-bs-target="#analytics" type="button" role="tab" onclick="loadHospitalAnalytics()">
+      <li class="nav-item flex-fill" role="presentation">
+        <button class="nav-link fw-bold rounded-pill px-4 w-100 text-md-center text-start" id="analytics-tab" data-bs-toggle="pill" data-bs-target="#analytics" type="button" role="tab" onclick="loadHospitalAnalytics()">
             <i class="bi bi-pie-chart-fill me-2"></i> Hospital Analytics
         </button>
       </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link fw-bold rounded-pill px-4" id="schedule-tab" data-bs-toggle="pill" data-bs-target="#schedule" type="button" role="tab" onclick="loadSchedulePrediction()">
+      <li class="nav-item flex-fill" role="presentation">
+        <button class="nav-link fw-bold rounded-pill px-4 w-100 text-md-center text-start" id="schedule-tab" data-bs-toggle="pill" data-bs-target="#schedule" type="button" role="tab" onclick="loadSchedulePrediction()">
             <i class="bi bi-calendar-check me-2"></i> Smart Scheduling
         </button>
       </li>
@@ -64,7 +64,7 @@
                                 </div>
 
                                 <div class="row mb-4">
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 mb-3 mb-md-0">
                                         <label class="form-label text-muted fw-bold">Patient Age</label>
                                         <input type="number" class="form-control" name="age" placeholder="e.g., 45" required>
                                     </div>
@@ -124,11 +124,11 @@
 
                                 <div id="feedbackSection" class="border-top pt-4 mb-3">
                                     <p class="small text-muted fw-bold mb-3">Is this prediction accurate?</p>
-                                    <div class="d-flex gap-2">
-                                        <button class="btn btn-outline-success btn-sm flex-fill rounded-pill fw-bold" onclick="sendFeedback(true)">
+                                    <div class="d-flex flex-column flex-md-row gap-2">
+                                        <button class="btn btn-outline-success btn-sm flex-fill rounded-pill fw-bold py-2" onclick="sendFeedback(true)">
                                             <i class="bi bi-hand-thumbs-up me-1"></i> Accurate
                                         </button>
-                                        <button class="btn btn-outline-danger btn-sm flex-fill rounded-pill fw-bold" onclick="sendFeedback(false)">
+                                        <button class="btn btn-outline-danger btn-sm flex-fill rounded-pill fw-bold py-2" onclick="sendFeedback(false)">
                                             <i class="bi bi-hand-thumbs-down me-1"></i> Not Accurate
                                         </button>
                                     </div>
@@ -136,7 +136,7 @@
 
                                 <div id="startChatContainer" class="text-center mt-auto pt-3 border-top" style="display: none;">
                                     <p class="small text-muted fw-bold mb-2">Want more details? Ask Medcare AI!</p>
-                                    <button class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm" onclick="startAIChat()">
+                                    <button class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm w-100" onclick="startAIChat()">
                                         <i class="bi bi-chat-left-dots me-2"></i> Discuss with Medcare AI
                                     </button>
                                 </div>
@@ -166,8 +166,8 @@
                         <div class="p-3 bg-white border-top">
                             <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden border">
                                 <input type="text" id="chatMessageInput" class="form-control border-0 bg-white ps-4" placeholder="Ask anything about this diagnosis..." style="font-size: 1.05rem;" onkeypress="handleChatKeyPress(event)" dir="auto">
-                                <button class="btn btn-primary px-5 fw-bold" type="button" onclick="sendChatMessage()">
-                                    <i class="bi bi-send-fill me-2"></i> Send
+                                <button class="btn btn-primary px-4 fw-bold" type="button" onclick="sendChatMessage()">
+                                    <i class="bi bi-send-fill me-2 d-none d-md-inline"></i> Send
                                 </button>
                             </div>
                         </div>
@@ -341,7 +341,7 @@
                 contextContent += "Initial AI Prediction: " + data.disease + "\n";
                 contextContent += "Confidence Score: " + data.score + "%\n";
 
-                // Strict language constraint added to prevent Llama-3 hallucinations
+                // Language constraint to prevent hallucinations
                 contextContent += "CRITICAL INSTRUCTION: You must strictly reply in the same language the user speaks (Arabic or English). NEVER output Chinese characters, Pinyin, or any other unauthorized languages.\n";
 
                 conversationHistory.push({role: "user", content: "Context for our medical discussion: \n" + contextContent});

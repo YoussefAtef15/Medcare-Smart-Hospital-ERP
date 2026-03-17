@@ -309,6 +309,25 @@ body {
 }
 
 /* =========================================
+   MOBILE TABLE OPTIMIZATION (Fix text wrap)
+   ========================================= */
+.table-custom {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 991px) {
+    .mobile-safe-table th,
+    .mobile-safe-table td {
+        white-space: nowrap !important;
+        min-width: 130px;
+    }
+    .mobile-safe-table .id-col {
+        min-width: 80px;
+    }
+}
+
+/* =========================================
    SWEETALERT2 OVERRIDE (MODERN UI POPUP)
    ========================================= */
 /* Themed backdrop with blur effect */

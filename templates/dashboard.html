@@ -4,7 +4,7 @@
 <div class="container-fluid px-0">
 
     {% if session.get('role') == 'admin' %}
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
         <div>
             <h3 class="fw-bold">Hospital Overview</h3>
             <p class="text-muted mb-0">Monitor hospital operations, appointments, and overall performance.</p>
@@ -18,24 +18,24 @@
         </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-md-3">
+    <div class="row mb-2">
+        <div class="col-md-3 mb-3">
             <a href="/patients" class="btn btn-outline-primary w-100 py-2 fw-bold shadow-sm rounded-pill"><i class="bi bi-person-plus-fill me-2"></i>Add Patient</a>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 mb-3">
             <a href="/appointments" class="btn btn-outline-success w-100 py-2 fw-bold shadow-sm rounded-pill"><i class="bi bi-calendar-plus me-2"></i>Create Appointment</a>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 mb-3">
             <a href="/rooms" class="btn btn-outline-warning text-dark w-100 py-2 fw-bold shadow-sm rounded-pill"><i class="bi bi-door-open me-2"></i>Assign Room</a>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 mb-3">
             <a href="/billing" class="btn btn-outline-danger w-100 py-2 fw-bold shadow-sm rounded-pill"><i class="bi bi-receipt me-2"></i>Create Bill</a>
         </div>
     </div>
 
     <h5 class="fw-bold mb-3 border-bottom pb-2">Today's Statistics</h5>
-    <div class="row mb-4">
-        <div class="col-md-3">
+    <div class="row mb-2">
+        <div class="col-md-3 mb-3">
             <div class="card bg-white border-0 shadow-sm rounded-4 h-100">
                 <div class="card-body py-4 d-flex align-items-center justify-content-between">
                     <div>
@@ -46,7 +46,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 mb-3">
             <div class="card bg-white border-0 shadow-sm rounded-4 h-100">
                 <div class="card-body py-4 d-flex align-items-center justify-content-between">
                     <div>
@@ -57,7 +57,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 mb-3">
             <div class="card bg-white border-0 shadow-sm rounded-4 h-100">
                 <div class="card-body py-4 d-flex align-items-center justify-content-between">
                     <div>
@@ -68,7 +68,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 mb-3">
             <div class="card bg-white border-0 shadow-sm rounded-4 h-100">
                 <div class="card-body py-4 d-flex align-items-center justify-content-between">
                     <div>
@@ -160,7 +160,7 @@
             </div>
         </div>
 
-        <div class="col-lg-4">
+        <div class="col-lg-4 mb-4">
             <div class="card shadow-sm border-0 rounded-4 h-100 mb-4">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -231,7 +231,7 @@
 
 
     {% elif session.get('role') == 'doctor' %}
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
         <div>
             <h3 class="fw-bold">Hello, <span class="text-capitalize">Dr. {{ session.get('username') }}</span> 👋</h3>
             <p class="text-muted mb-0">Here is the latest update for your clinic.</p>
@@ -285,9 +285,9 @@
     </div>
     {% endif %}
 
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card stat-card card-dark-green">
+    <div class="row mb-2">
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card card-dark-green h-100">
                 <div class="card-body">
                     <div class="stat-icon"><i class="bi bi-calendar2-check"></i></div>
                     <h6 class="card-subtitle mb-2">Total Appointments</h6>
@@ -295,8 +295,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card stat-card">
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card h-100">
                 <div class="card-body">
                     <div class="stat-icon text-warning"><i class="bi bi-robot"></i></div>
                     <h6 class="card-subtitle mb-2 text-muted">AI Accuracy</h6>
@@ -304,8 +304,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card stat-card">
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card h-100">
                 <div class="card-body">
                     <div class="stat-icon text-success"><i class="bi bi-people"></i></div>
                     <h6 class="card-subtitle mb-2 text-muted">Total Patients</h6>
@@ -313,8 +313,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card stat-card">
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card h-100">
                 <div class="card-body">
                     <div class="stat-icon text-danger"><i class="bi bi-door-closed"></i></div>
                     <h6 class="card-subtitle mb-2 text-muted">Occupied Rooms</h6>

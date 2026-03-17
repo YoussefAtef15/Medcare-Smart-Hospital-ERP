@@ -39,22 +39,45 @@ Medcare is a comprehensive, AI-powered Hospital Management System (ERP) designed
 
 ```text
 Smart_Hospital_System/
-├── static/
+├── ai_model/                 # AI model training and ML scripts
+│   └── train_model.py        # Script to train the predictive model
+├── static/                   # Static assets (CSS, JS, Images)
 │   ├── css/
-│   ├── img/
-│   └── uploads/          # User-uploaded files (Git-ignored)
-├── templates/
-│   ├── admin/            # Admin-only views (Users, Audit, Depts)
-│   ├── auth/             # Login, Profile, Password Management
-│   ├── clinical/         # Records, Prescriptions, AI Prediction
-│   ├── operations/       # Appointments, Billing, Rooms
-│   ├── staff/            # Doctors, Nurses schedules
-│   ├── dashboard.html    # Dynamic role-based dashboard
-│   └── base.html         # Main layout and sidebar
-├── app.py                # Main Flask application & routes
-├── schema.sql            # Database schema for setup
-├── requirements.txt      # Python dependencies
-└── .env                  # API keys (Git-ignored)
+│   │   └── style.css         # Main stylesheet (Flexbox/Grid, etc.)
+│   ├── img/                  # Image assets
+│   │   ├── Doctor_img.jpg
+│   │   └── avatar.png
+│   └── js/
+│       └── main.js           # Frontend JavaScript logic 
+├── templates/                # HTML templates for the UI
+│   ├── admin/                # Admin-only views (Users, Audit, Depts)
+│   │   ├── audit.html
+│   │   ├── departments.html
+│   │   └── users.html
+│   ├── auth/                 # Authentication & User Management
+│   │   ├── change_password.html
+│   │   ├── login.html
+│   │   └── profile.html
+│   ├── clinical/             # Clinical records, Prescriptions, AI Prediction
+│   │   ├── ai_prediction.html
+│   │   ├── patients.html
+│   │   ├── prescriptions.html
+│   │   └── records.html
+│   ├── operations/           # Daily operations (Appointments, Billing, Rooms)
+│   │   ├── appointments.html
+│   │   ├── billing.html
+│   │   └── rooms.html
+│   ├── staff/                # Staff management & Schedules
+│   │   ├── doctor_schedule.html
+│   │   ├── doctors.html
+│   │   └── nurses.html
+│   ├── base.html             # Main layout and sidebar wrapper
+│   └── dashboard.html        # Dynamic role-based dashboard
+├── README.md                 # Project documentation
+├── app.py                    # Main Flask application & routes
+├── database_setup.sql        # SQL schema for database setup (PostgreSQL)
+├── init_db.py                # Python script to run the SQL and initialize DB
+└── requirements.txt          # Python dependencies
 
 ```
 

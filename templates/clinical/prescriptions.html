@@ -1,6 +1,25 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+    /* Mobile Table Optimization: Enables smooth horizontal scroll to prevent cut-off content */
+    .table-custom {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    @media (max-width: 991px) {
+        .mobile-safe-table th,
+        .mobile-safe-table td {
+            white-space: nowrap !important;
+            min-width: 130px;
+        }
+        .mobile-safe-table .id-col {
+            min-width: 80px;
+        }
+    }
+</style>
+
 <div class="container-fluid px-0">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -15,10 +34,11 @@
     </div>
 
     <div class="table-responsive table-custom">
-        <table class="table mb-0">
+        <table class="table mb-0 text-nowrap align-middle mobile-safe-table">
             <thead>
                 <tr>
-                    <th>Rx ID</th>
+                    <th class="id-col">Rx ID</th>
+                    <th>Date</th>
                     <th>Patient Name</th>
                     <th>Medicine</th>
                     <th>Dosage</th>
@@ -26,16 +46,17 @@
                 </tr>
             </thead>
             <tbody>
-                {% for rx in prescriptions %}
+                {% for rx in prescriptions|sort(attribute='PrescriptionID', reverse=True) %}
                 <tr>
-                    <td class="fw-bold text-muted">#{{ rx.PrescriptionID }}</td>
+                    <td class="fw-bold text-muted id-col">#{{ rx.PrescriptionID }}</td>
+                    <td><span class="text-muted fw-bold"><i class="bi bi-calendar-event me-1 text-primary"></i>{{ rx.Date }}</span></td>
                     <td class="fw-bold text-dark">{{ rx.PFirst }} {{ rx.PLast }}</td>
                     <td><span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-1">{{ rx.MedicineName }}</span></td>
                     <td class="text-muted fw-bold">{{ rx.Dosage }}</td>
                     <td>{{ rx.Duration }}</td>
                 </tr>
                 {% else %}
-                <tr><td colspan="5" class="text-center py-4 text-muted">No prescriptions found.</td></tr>
+                <tr><td colspan="6" class="text-center py-4 text-muted">No prescriptions found.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
